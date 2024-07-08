@@ -15,11 +15,10 @@ class CreateStockInsTable extends Migration
     {
         Schema::create('stock_ins', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
             $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
             $table->integer('quantity');
             $table->date('date');
-            $table->timestamps(); 
+            $table->timestamps();
             $table->string('registered_by');
             $table->string('plaque')->nullable();
             $table->text('comment')->nullable();

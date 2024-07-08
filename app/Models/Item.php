@@ -11,13 +11,8 @@ class Item extends Model
 
     protected $guarded = [];
 
-    public function suppliers()
+    public function supplier()
     {
-        return $this->hasMany(Supplier::class);
-    }
-
-    public function stockIns()
-    {
-        return $this->hasMany(StockIn::class);
+        return $this->belongsTo(Supplier::class);
     }
 }

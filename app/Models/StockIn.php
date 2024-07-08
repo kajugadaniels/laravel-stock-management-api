@@ -7,11 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockIn extends Model
 {
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
-
     public function item()
     {
         return $this->belongsTo(Item::class);

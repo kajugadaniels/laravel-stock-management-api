@@ -19,14 +19,6 @@ class ItemController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -37,6 +29,7 @@ class ItemController extends Controller
             'type' => 'required|string|max:255',
             'capacity' => 'required|numeric',
             'unit' => 'required|string|max:50',
+            'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
         if ($validator->fails()) {
@@ -59,15 +52,7 @@ class ItemController extends Controller
             return response()->json(['message' => 'Item not found'], 404);
         }
 
-        return response()->json(['message' => 'Item retrieved successfully', 'data' => $item], 200);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return response()->json($item);
     }
 
     /**

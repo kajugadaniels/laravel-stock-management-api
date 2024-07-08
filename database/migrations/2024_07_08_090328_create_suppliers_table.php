@@ -18,7 +18,6 @@ class CreateSuppliersTable extends Migration
             $table->string('name');
             $table->string('contact');
             $table->string('address');
-            $table->foreignId('item_id')->constrained('items');
             $table->timestamps();
         });
     }

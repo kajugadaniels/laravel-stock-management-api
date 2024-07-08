@@ -20,14 +20,6 @@ class SupplierController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -36,7 +28,6 @@ class SupplierController extends Controller
             'name' => 'required|string|max:255',
             'contact' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'item_id' => 'required|exists:items,id',
         ]);
 
         if ($validator->fails()) {
@@ -59,17 +50,7 @@ class SupplierController extends Controller
             return response()->json(['message' => 'Supplier not found'], 404);
         }
 
-        $itemName = $supplier->item->name ?? 'Item not found';
-
-        return response()->json(['supplier' => $supplier, 'item_name' => $itemName]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return response()->json(['supplier' => $supplier]);
     }
 
     /**
@@ -78,10 +59,9 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'names' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'contact' => 'sometimes|required|string|max:255',
             'address' => 'sometimes|required|string|max:255',
-            'item_id' => 'sometimes|required|exists:items,id',
         ]);
 
         if ($validator->fails()) {

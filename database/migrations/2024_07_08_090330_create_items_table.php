@@ -20,6 +20,7 @@ class CreateItemsTable extends Migration
             $table->string('type');
             $table->decimal('capacity', 8, 2);
             $table->string('unit');
+            $table->foreignId('supplier_id')->constrained('suppliers');
             $table->timestamps();
         });
     }
