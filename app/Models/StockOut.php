@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class StockOut extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    public function stockIn()
+    {
+        return $this->belongsTo(StockIn::class);
+    }
 }
