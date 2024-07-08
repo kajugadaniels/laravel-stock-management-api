@@ -7,10 +7,25 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @OA\Tag(
+ *     name="Stock In",
+ *     description="API Endpoints for Stock In"
+ * )
+ */
 class StockInController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/stock-ins",
+     *     summary="Get all stock in entries",
+     *     tags={"Stock In"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of stock in entries",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/StockIn"))
+     *     )
+     * )
      */
     public function index()
     {
@@ -19,20 +34,32 @@ class StockInController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/stock-ins",
+     *     summary="Create a new stock in entry",
+     *     tags={"Stock In"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/StockInRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Stock in entry created successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="data", ref="#/components/schemas/StockIn"))
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation Error",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="errors", type="object"))
+     *     )
+     * )
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'item_id' => 'required|exists:items,id',
-            'quantity' => 'required|integer',
-            'date' => 'required|date',
-            'registered_by' => 'required|string|max:255',
-            'plaque' => 'nullable|string|max:255',
-            'comment' => 'nullable|string',
-            'batch' => 'required|string|max:255',
-            'status' => 'required|in:Complete,Pending',
-            'loading_payment_status' => 'required|boolean',
+            'quantity' => 'required|numeric|min:1',
+            'date_received' => 'required|date',
         ]);
 
         if ($validator->fails()) {
@@ -41,38 +68,83 @@ class StockInController extends Controller
 
         $stockIn = StockIn::create($request->all());
 
-        return response()->json(['message' => 'StockIn created successfully', 'data' => $stockIn], 201);
+        return response()->json(['message' => 'Stock in entry created successfully', 'data' => $stockIn], 201);
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/api/stock-ins/{id}",
+     *     summary="Get a stock in entry by ID",
+     *     tags={"Stock In"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Stock In ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(ref="#/components/schemas/StockIn")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stock In entry not found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
-    public function show($id)
+    public function show(string $id)
     {
         $stockIn = StockIn::find($id);
 
         if (is_null($stockIn)) {
-            return response()->json(['message' => 'StockIn not found'], 404);
+            return response()->json(['message' => 'Stock In entry not found'], 404);
         }
 
         return response()->json($stockIn);
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/api/stock-ins/{id}",
+     *     summary="Update a stock in entry",
+     *     tags={"Stock In"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Stock In ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/StockInRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Stock In entry updated successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="data", ref="#/components/schemas/StockIn"))
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation Error",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="errors", type="object"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stock In entry not found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'item_id' => 'sometimes|required|exists:items,id',
-            'quantity' => 'sometimes|required|integer',
-            'date' => 'sometimes|required|date',
-            'registered_by' => 'sometimes|required|string|max:255',
-            'plaque' => 'nullable|string|max:255',
-            'comment' => 'nullable|string',
-            'batch' => 'sometimes|required|string|max:255',
-            'status' => 'sometimes|required|in:Complete,Pending',
-            'loading_payment_status' => 'sometimes|required|boolean',
+            'quantity' => 'sometimes|required|numeric|min:1',
+            'date_received' => 'sometimes|required|date',
         ]);
 
         if ($validator->fails()) {
@@ -82,27 +154,48 @@ class StockInController extends Controller
         $stockIn = StockIn::find($id);
 
         if (is_null($stockIn)) {
-            return response()->json(['message' => 'StockIn not found'], 404);
+            return response()->json(['message' => 'Stock In entry not found'], 404);
         }
 
         $stockIn->update($request->all());
 
-        return response()->json(['message' => 'StockIn updated successfully', 'data' => $stockIn], 200);
+        return response()->json(['message' => 'Stock In entry updated successfully', 'data' => $stockIn], 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/api/stock-ins/{id}",
+     *     summary="Delete a stock in entry",
+     *     tags={"Stock In"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Stock In ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Stock In entry deleted successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Stock In entry not found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
     public function destroy($id)
     {
         $stockIn = StockIn::find($id);
 
         if (is_null($stockIn)) {
-            return response()->json(['message' => 'StockIn not found'], 404);
+            return response()->json(['message' => 'Stock In entry not found'], 404);
         }
 
         $stockIn->delete();
 
-        return response()->json(['message' => 'StockIn deleted successfully'], 200);
+        return response()->json(['message' => 'Stock In entry deleted successfully'], 200);
     }
 }

@@ -7,10 +7,25 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @OA\Tag(
+ *     name="Items",
+ *     description="API Endpoints for Items"
+ * )
+ */
 class ItemController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/items",
+     *     summary="Get all items",
+     *     tags={"Items"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of items",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Item"))
+     *     )
+     * )
      */
     public function index()
     {
@@ -19,7 +34,25 @@ class ItemController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/items",
+     *     summary="Create a new item",
+     *     tags={"Items"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/ItemRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Item created successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="data", ref="#/components/schemas/Item"))
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation Error",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="errors", type="object"))
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -42,7 +75,28 @@ class ItemController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/api/items/{id}",
+     *     summary="Get an item by ID",
+     *     tags={"Items"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Item ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(ref="#/components/schemas/Item")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Item not found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
     public function show(string $id)
     {
@@ -56,7 +110,37 @@ class ItemController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/api/items/{id}",
+     *     summary="Update an item",
+     *     tags={"Items"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Item ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/ItemRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Item updated successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="data", ref="#/components/schemas/Item"))
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation Error",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="errors", type="object"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Item not found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
     public function update(Request $request, $id)
     {
@@ -66,6 +150,7 @@ class ItemController extends Controller
             'type' => 'sometimes|required|string|max:255',
             'capacity' => 'sometimes|required|numeric',
             'unit' => 'sometimes|required|string|max:50',
+            'supplier_id' => 'sometimes|required|exists:suppliers,id',
         ]);
 
         if ($validator->fails()) {
@@ -84,7 +169,28 @@ class ItemController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/api/items/{id}",
+     *     summary="Delete an item",
+     *     tags={"Items"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Item ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Item deleted successfully",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Item not found",
+     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
+     *     )
+     * )
      */
     public function destroy($id)
     {
