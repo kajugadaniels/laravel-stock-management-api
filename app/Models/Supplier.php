@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Supplier extends Model
 {
-    public function items()
+    use HasFactory;
+
+    protected $guarded = [];
+
+    public function item()
     {
         return $this->belongsTo(Item::class);
     }
