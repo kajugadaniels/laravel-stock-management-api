@@ -18,13 +18,13 @@ class CreateStockInsTable extends Migration
             $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
             $table->integer('quantity');
             $table->date('date');
-            $table->timestamps();
             $table->string('registered_by');
             $table->string('plaque')->nullable();
             $table->text('comment')->nullable();
             $table->string('batch');
             $table->enum('status', ['Complete', 'Pending']);
             $table->boolean('loading_payment_status')->default(false);
+            $table->timestamps();
         });
     }
 

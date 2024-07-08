@@ -15,4 +15,9 @@ class Item extends Model
     {
         return $this->belongsTo(Supplier::class);
     }
+
+    public function stockIns()
+    {
+        return $this->hasMany(StockIn::class);
+    }
 }
