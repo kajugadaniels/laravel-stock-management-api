@@ -17,7 +17,7 @@ class CreateItemsTable extends Migration
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('category_id');
-            $table->unsignedBigInteger('type_id');
+            $table->unsignedBigInteger('type_id')->nullable();
             $table->decimal('capacity', 8, 2);
             $table->string('unit');
             $table->foreignId('supplier_id')->constrained('suppliers');

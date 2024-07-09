@@ -14,8 +14,10 @@ class ItemController extends Controller
     public function index()
     {
         $items = DB::table('items')
-                    ->select('items.*', 'suppliers.name as supplier_name')
+                    ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
                     ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
+                    ->join('categories', 'items.category_id', '=', 'categories.id')
+                    ->join('types', 'items.type_id', '=', 'types.id')
                     ->orderBy('items.id', 'desc')
                     ->get();
 
@@ -26,8 +28,8 @@ class ItemController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'type_id' => 'required|exists:types,id',
             'capacity' => 'required|numeric',
             'unit' => 'required|string|max:50',
             'supplier_id' => 'required|exists:suppliers,id',
@@ -38,12 +40,10 @@ class ItemController extends Controller
         }
 
         try {
-            $supplier = Supplier::findOrFail($request->supplier_id);
-
             $item = Item::create([
                 'name' => $request->name,
-                'category' => $request->category,
-                'type' => $request->type,
+                'category_id' => $request->category_id,
+                'type_id' => $request->type_id,
                 'capacity' => $request->capacity,
                 'unit' => $request->unit,
                 'supplier_id' => $request->supplier_id,
@@ -57,7 +57,7 @@ class ItemController extends Controller
 
     public function show(string $id)
     {
-        $item = Item::find($id);
+        $item = Item::with(['supplier', 'category', 'type'])->find($id);
 
         if (is_null($item)) {
             return response()->json(['message' => 'Item not found'], 404);
@@ -70,8 +70,8 @@ class ItemController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
-            'category' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|max:255',
+            'category_id' => 'sometimes|required|exists:categories,id',
+            'type_id' => 'sometimes|required|exists:types,id',
             'capacity' => 'sometimes|required|numeric',
             'unit' => 'sometimes|required|string|max:50',
             'supplier_id' => 'sometimes|required|exists:suppliers,id',
