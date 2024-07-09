@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
@@ -29,7 +30,12 @@ class ItemController extends Controller
      */
     public function index()
     {
-        $items = Item::orderBy('id', 'desc')->get();
+        $items = DB::table('items')
+                    ->select('items.*', 'suppliers.name as supplier_name')
+                    ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
+                    ->orderBy('items.id', 'desc')
+                    ->get();
+
         return response()->json($items);
     }
 
