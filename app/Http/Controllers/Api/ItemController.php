@@ -6,6 +6,7 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Supplier;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -75,9 +76,22 @@ class ItemController extends Controller
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
 
-        $item = Item::create($request->all());
+        try {
+            $supplier = Supplier::findOrFail($request->supplier_id);
 
-        return response()->json(['message' => 'Item created successfully', 'data' => $item], 201);
+            $item = Item::create([
+                'name' => $request->name,
+                'category' => $request->category,
+                'type' => $request->type,
+                'capacity' => $request->capacity,
+                'unit' => $request->unit,
+                'supplier_id' => $request->supplier_id,
+            ]);
+
+            return response()->json(['message' => 'Item created successfully', 'data' => $item], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create item', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
