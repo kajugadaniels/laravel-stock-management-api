@@ -9,26 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * @OA\Tag(
- *     name="Items",
- *     description="API Endpoints for Items"
- * )
- */
 class ItemController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/api/items",
-     *     summary="Get all items",
-     *     tags={"Items"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of items",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Item"))
-     *     )
-     * )
-     */
     public function index()
     {
         $items = DB::table('items')
@@ -40,27 +22,6 @@ class ItemController extends Controller
         return response()->json($items);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/items",
-     *     summary="Create a new item",
-     *     tags={"Items"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ItemRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Item created successfully",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="data", ref="#/components/schemas/Item"))
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Validation Error",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="errors", type="object"))
-     *     )
-     * )
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -94,30 +55,6 @@ class ItemController extends Controller
         }
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/items/{id}",
-     *     summary="Get an item by ID",
-     *     tags={"Items"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Item ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success",
-     *         @OA\JsonContent(ref="#/components/schemas/Item")
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Item not found",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
-     *     )
-     * )
-     */
     public function show(string $id)
     {
         $item = Item::find($id);
@@ -129,39 +66,6 @@ class ItemController extends Controller
         return response()->json($item);
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/items/{id}",
-     *     summary="Update an item",
-     *     tags={"Items"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Item ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ItemRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Item updated successfully",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="data", ref="#/components/schemas/Item"))
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Validation Error",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="errors", type="object"))
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Item not found",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
-     *     )
-     * )
-     */
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -188,30 +92,6 @@ class ItemController extends Controller
         return response()->json(['message' => 'Item updated successfully', 'data' => $item], 200);
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/items/{id}",
-     *     summary="Delete an item",
-     *     tags={"Items"},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Item ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Item deleted successfully",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Item not found",
-     *         @OA\JsonContent(type="object", @OA\Property(property="message", type="string"))
-     *     )
-     * )
-     */
     public function destroy($id)
     {
         $item = Item::find($id);

@@ -16,12 +16,15 @@ class CreateItemsTable extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('category');
-            $table->string('type');
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('type_id');
             $table->decimal('capacity', 8, 2);
             $table->string('unit');
             $table->foreignId('supplier_id')->constrained('suppliers');
             $table->timestamps();
+
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('type_id')->references('id')->on('types')->onDelete('cascade');
         });
     }
 
