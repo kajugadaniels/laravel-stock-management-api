@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Employee extends Model
 {
+    protected $guarded = [];
+
     public function prodStockIns()
     {
         return $this->hasMany(StockIn::class);

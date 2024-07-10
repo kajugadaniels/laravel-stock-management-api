@@ -18,8 +18,7 @@ class CreateEmployeesTable extends Migration
             $table->string('name');
             $table->string('contact');
             $table->string('position');
-            $table->date('rec_date');  
-            $table->timestamps(); 
+            $table->timestamps();
         });
     }
 
