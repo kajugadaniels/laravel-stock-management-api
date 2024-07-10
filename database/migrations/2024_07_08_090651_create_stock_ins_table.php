@@ -17,7 +17,6 @@ class CreateStockInsTable extends Migration
             $table->id();
             $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
             $table->integer('quantity');
-            $table->date('date');
             $table->string('registered_by');
             $table->string('plaque')->nullable();
             $table->text('comment')->nullable();
