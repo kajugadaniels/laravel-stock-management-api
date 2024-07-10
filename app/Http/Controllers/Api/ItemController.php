@@ -31,7 +31,7 @@ class ItemController extends Controller
             'category_id' => 'required|exists:categories,id',
             'type_id' => 'required|exists:types,id',
             'capacity' => 'required|numeric',
-            'unit' => 'required|string|max:50',
+            'unit' => 'sometimes|string|max:50',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
