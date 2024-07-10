@@ -9,11 +9,11 @@ class Employee extends Model
 {
     public function prodStockIns()
     {
-        return $this->hasMany(ProdStockIn::class);
+        return $this->hasMany(StockIn::class);
     }
 
     public function prodStockOuts()
     {
-        return $this->hasMany(ProdStockOut::class);
+        return $this->hasMany(StockOut::class);
     }
 }
