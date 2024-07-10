@@ -1,12 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\StockInController;
 use App\Http\Controllers\Api\StockOutController;
 use App\Http\Controllers\Api\SupplierController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\TypeController;
+use App\Http\Controllers\Api\TypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::apiResource('categories', CategoryController::class);
