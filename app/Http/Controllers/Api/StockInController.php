@@ -11,7 +11,7 @@ class StockInController extends Controller
 {
     public function index()
     {
-        $stockIns = StockIn::orderBy('id', 'desc')->get();
+        $stockIns = StockIn::orderBy('id', 'desc')->with('item')->get();
         return response()->json($stockIns);
     }
 
@@ -19,8 +19,13 @@ class StockInController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'item_id' => 'required|exists:items,id',
-            'quantity' => 'required|numeric|min:1',
-            'date_received' => 'required|date',
+            'quantity' => 'required|integer',
+            'registered_by' => 'required|string|max:255',
+            'plaque' => 'nullable|string|max:255',
+            'comment' => 'nullable|string',
+            'batch' => 'required|string|max:255',
+            'status' => 'required|in:Complete,Pending',
+            'loading_payment_status' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -29,15 +34,15 @@ class StockInController extends Controller
 
         $stockIn = StockIn::create($request->all());
 
-        return response()->json(['message' => 'Stock in entry created successfully', 'data' => $stockIn], 201);
+        return response()->json(['message' => 'Stock In created successfully', 'data' => $stockIn], 201);
     }
 
-    public function show(string $id)
+    public function show($id)
     {
-        $stockIn = StockIn::find($id);
+        $stockIn = StockIn::with('item')->find($id);
 
         if (is_null($stockIn)) {
-            return response()->json(['message' => 'Stock In entry not found'], 404);
+            return response()->json(['message' => 'Stock In not found'], 404);
         }
 
         return response()->json($stockIn);
@@ -47,8 +52,13 @@ class StockInController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'item_id' => 'sometimes|required|exists:items,id',
-            'quantity' => 'sometimes|required|numeric|min:1',
-            'date_received' => 'sometimes|required|date',
+            'quantity' => 'sometimes|required|integer',
+            'registered_by' => 'sometimes|required|string|max:255',
+            'plaque' => 'nullable|string|max:255',
+            'comment' => 'nullable|string',
+            'batch' => 'sometimes|required|string|max:255',
+            'status' => 'sometimes|required|in:Complete,Pending',
+            'loading_payment_status' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -58,12 +68,12 @@ class StockInController extends Controller
         $stockIn = StockIn::find($id);
 
         if (is_null($stockIn)) {
-            return response()->json(['message' => 'Stock In entry not found'], 404);
+            return response()->json(['message' => 'Stock In not found'], 404);
         }
 
         $stockIn->update($request->all());
 
-        return response()->json(['message' => 'Stock In entry updated successfully', 'data' => $stockIn], 200);
+        return response()->json(['message' => 'Stock In updated successfully', 'data' => $stockIn], 200);
     }
 
     public function destroy($id)
@@ -71,11 +81,11 @@ class StockInController extends Controller
         $stockIn = StockIn::find($id);
 
         if (is_null($stockIn)) {
-            return response()->json(['message' => 'Stock In entry not found'], 404);
+            return response()->json(['message' => 'Stock In not found'], 404);
         }
 
         $stockIn->delete();
 
-        return response()->json(['message' => 'Stock In entry deleted successfully'], 200);
+        return response()->json(['message' => 'Stock In deleted successfully'], 200);
     }
 }
