@@ -24,6 +24,20 @@ class ItemController extends Controller
         return response()->json($items);
     }
 
+    public function getItemsBySupplier($supplierId)
+    {
+        $items = DB::table('items')
+            ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
+            ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
+            ->join('categories', 'items.category_id', '=', 'categories.id')
+            ->join('types', 'items.type_id', '=', 'types.id')
+            ->where('items.supplier_id', $supplierId)
+            ->orderBy('items.id', 'desc')
+            ->get();
+
+        return response()->json($items);
+    }
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
