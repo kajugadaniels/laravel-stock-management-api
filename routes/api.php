@@ -25,3 +25,5 @@ Route::controller(RegisterController::class)->group(function(){
     Route::post('register', 'register');
     Route::post('login', 'login');
 });
+
+Route::middleware('auth:sanctum')->get('/check-auth', [RegisterController::class, 'checkAuth']);
