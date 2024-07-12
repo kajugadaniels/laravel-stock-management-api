@@ -14,6 +14,7 @@ Route::apiResource('categories', CategoryController::class);
 Route::apiResource('types', TypeController::class);
 Route::apiResource('items', ItemController::class);
 Route::get('items/supplier/{supplierId}', [ItemController::class, 'getItemsBySupplier']);
+Route::get('types/category/{categoryId}', [ItemController::class, 'getTypesByCategory']);
 Route::apiResource('suppliers', SupplierController::class);
 Route::apiResource('employees', EmployeeController::class);
 Route::apiResource('products', StockInController::class);
