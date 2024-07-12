@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UserSeederTable extends Seeder
 {
@@ -12,6 +14,25 @@ class UserSeederTable extends Seeder
      */
     public function run(): void
     {
-        //
+        User::create([
+            'name' => 'Managing Director',
+            'email' => 'md@jabana.com',
+            'password' => Hash::make('123'),
+            'role' => 'manager',
+        ]);
+
+        User::create([
+            'name' => 'Store Keeper',
+            'email' => 'storekeeper@jabana.com',
+            'password' => Hash::make('123'),
+            'role' => 'storekeeper',
+        ]);
+
+        User::create([
+            'name' => 'Production',
+            'email' => 'production@jabana.com',
+            'password' => Hash::make('123'),
+            'role' => 'production',
+        ]);
     }
 }
