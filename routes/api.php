@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\TypeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RegisterController;
 
-Route::middleware(['auth:sanctum', 'role:manager'])->group(function () {
+// Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('types', TypeController::class);
     Route::apiResource('items', ItemController::class);
@@ -20,20 +20,7 @@ Route::middleware(['auth:sanctum', 'role:manager'])->group(function () {
     Route::apiResource('employees', EmployeeController::class);
     Route::apiResource('products', StockInController::class);
     Route::apiResource('stock-out', StockOutController::class);
-});
-
-Route::middleware(['auth:sanctum', 'role:storekeeper'])->group(function () {
-    Route::apiResource('items', ItemController::class);
-    Route::get('items/supplier/{supplierId}', [ItemController::class, 'getItemsBySupplier']);
-    Route::get('types/category/{categoryId}', [ItemController::class, 'getTypesByCategory']);
-    Route::apiResource('products', StockInController::class);
-    Route::apiResource('stock-out', StockOutController::class);
-});
-
-Route::middleware(['auth:sanctum', 'role:production'])->group(function () {
-    Route::apiResource('suppliers', SupplierController::class);
-});
-
+// });
 
 //Registeration routes
 Route::controller(RegisterController::class)->group(function(){
