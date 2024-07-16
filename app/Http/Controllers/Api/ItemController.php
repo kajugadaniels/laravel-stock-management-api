@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
+use App\Models\Category;
+use App\Models\Type;
 use Illuminate\Support\Facades\Validator;
 
 class ItemController extends Controller
@@ -14,12 +16,12 @@ class ItemController extends Controller
     public function index()
     {
         $items = DB::table('items')
-                    ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
-                    ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
-                    ->join('categories', 'items.category_id', '=', 'categories.id')
-                    ->join('types', 'items.type_id', '=', 'types.id')
-                    ->orderBy('items.id', 'desc')
-                    ->get();
+            ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
+            ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
+            ->join('categories', 'items.category_id', '=', 'categories.id')
+            ->leftJoin('types', 'items.type_id', '=', 'types.id')
+            ->orderBy('items.id', 'desc')
+            ->get();
 
         return response()->json($items);
     }
@@ -27,11 +29,11 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'product_item_id' => 'required|exists:product_items,id',
             'category_id' => 'required|exists:categories,id',
-            'type_id' => 'required|exists:types,id',
+            'type_id' => 'nullable|exists:types,id',
             'capacity' => 'required|numeric',
-            'unit' => 'sometimes|string|max:50',
+            'unit' => 'nullable|string|max:50',
             'supplier_id' => 'required|exists:suppliers,id',
         ]);
 
@@ -41,7 +43,7 @@ class ItemController extends Controller
 
         try {
             $item = Item::create([
-                'name' => $request->name,
+                'product_item_id' => $request->product_item_id,
                 'category_id' => $request->category_id,
                 'type_id' => $request->type_id,
                 'capacity' => $request->capacity,
@@ -57,7 +59,7 @@ class ItemController extends Controller
 
     public function show(string $id)
     {
-        $item = Item::with(['supplier', 'category', 'type'])->find($id);
+        $item = Item::with(['supplier', 'category', 'type', 'productItem'])->find($id);
 
         if (is_null($item)) {
             return response()->json(['message' => 'Item not found'], 404);
@@ -69,11 +71,11 @@ class ItemController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
+            'product_item_id' => 'sometimes|required|exists:product_items,id',
             'category_id' => 'sometimes|required|exists:categories,id',
-            'type_id' => 'sometimes|required|exists:types,id',
+            'type_id' => 'sometimes|nullable|exists:types,id',
             'capacity' => 'sometimes|required|numeric',
-            'unit' => 'sometimes|required|string|max:50',
+            'unit' => 'sometimes|nullable|string|max:50',
             'supplier_id' => 'sometimes|required|exists:suppliers,id',
         ]);
 
@@ -111,7 +113,7 @@ class ItemController extends Controller
             ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
             ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
             ->join('categories', 'items.category_id', '=', 'categories.id')
-            ->join('types', 'items.type_id', '=', 'types.id')
+            ->leftJoin('types', 'items.type_id', '=', 'types.id')
             ->where('items.supplier_id', $supplierId)
             ->orderBy('items.id', 'desc')
             ->get();
@@ -121,9 +123,7 @@ class ItemController extends Controller
 
     public function getTypesByCategory($categoryId)
     {
-        $types = DB::table('types')
-            ->select('id', 'name')
-            ->where('category_id', $categoryId)
+        $types = Type::where('category_id', $categoryId)
             ->orderBy('name')
             ->get();
 
