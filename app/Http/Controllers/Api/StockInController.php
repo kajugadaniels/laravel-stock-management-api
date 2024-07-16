@@ -11,7 +11,10 @@ class StockInController extends Controller
 {
     public function index()
     {
-        $stockIns = StockIn::orderBy('id', 'desc')->with('item')->get();
+        $stockIns = StockIn::orderBy('id', 'desc')
+            ->with(['item.productItem'])
+            ->get();
+
         return response()->json($stockIns);
     }
 
