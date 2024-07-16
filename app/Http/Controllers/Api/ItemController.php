@@ -7,8 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
-use App\Models\Category;
-use App\Models\Type;
 use Illuminate\Support\Facades\Validator;
 
 class ItemController extends Controller
@@ -16,12 +14,13 @@ class ItemController extends Controller
     public function index()
     {
         $items = DB::table('items')
-            ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
-            ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
-            ->join('categories', 'items.category_id', '=', 'categories.id')
-            ->leftJoin('types', 'items.type_id', '=', 'types.id')
-            ->orderBy('items.id', 'desc')
-            ->get();
+                    ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name', 'product_items.name as product_item_name')
+                    ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
+                    ->join('categories', 'items.category_id', '=', 'categories.id')
+                    ->join('types', 'items.type_id', '=', 'types.id')
+                    ->join('product_items', 'items.product_item_id', '=', 'product_items.id')
+                    ->orderBy('items.id', 'desc')
+                    ->get();
 
         return response()->json($items);
     }
@@ -59,7 +58,7 @@ class ItemController extends Controller
 
     public function show(string $id)
     {
-        $item = Item::with(['supplier', 'category', 'type', 'productItem'])->find($id);
+        $item = Item::with(['supplier', 'category', 'type'])->find($id);
 
         if (is_null($item)) {
             return response()->json(['message' => 'Item not found'], 404);
@@ -113,7 +112,7 @@ class ItemController extends Controller
             ->select('items.*', 'suppliers.name as supplier_name', 'categories.name as category_name', 'types.name as type_name')
             ->join('suppliers', 'items.supplier_id', '=', 'suppliers.id')
             ->join('categories', 'items.category_id', '=', 'categories.id')
-            ->leftJoin('types', 'items.type_id', '=', 'types.id')
+            ->join('types', 'items.type_id', '=', 'types.id')
             ->where('items.supplier_id', $supplierId)
             ->orderBy('items.id', 'desc')
             ->get();
@@ -123,7 +122,9 @@ class ItemController extends Controller
 
     public function getTypesByCategory($categoryId)
     {
-        $types = Type::where('category_id', $categoryId)
+        $types = DB::table('types')
+            ->select('id', 'name')
+            ->where('category_id', $categoryId)
             ->orderBy('name')
             ->get();
 
