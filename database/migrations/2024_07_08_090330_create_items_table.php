@@ -6,16 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateItemsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->unsignedBigInteger('product_item_id');
             $table->unsignedBigInteger('category_id');
             $table->unsignedBigInteger('type_id')->nullable();
             $table->decimal('capacity', 8, 2);
@@ -23,16 +18,12 @@ class CreateItemsTable extends Migration
             $table->foreignId('supplier_id')->constrained('suppliers');
             $table->timestamps();
 
+            $table->foreign('product_item_id')->references('id')->on('product_items')->onDelete('cascade');
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->foreign('type_id')->references('id')->on('types')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('items');

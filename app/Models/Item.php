@@ -30,4 +30,9 @@ class Item extends Model
     {
         return $this->belongsTo(Type::class);
     }
+
+    public function productItem()
+    {
+        return $this->belongsTo(ProductItem::class);
+    }
 }
