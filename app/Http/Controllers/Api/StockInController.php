@@ -11,7 +11,7 @@ class StockInController extends Controller
 {
     public function index()
     {
-        $stockIns = StockIn::with(['supplier', 'item', 'user'])->get();
+        $stockIns = StockIn::with(['supplier', 'item.category', 'item.type', 'user'])->get();
         return response()->json($stockIns);
     }
 
@@ -48,7 +48,7 @@ class StockInController extends Controller
 
     public function show($id)
     {
-        $stockIn = StockIn::with(['supplier', 'item', 'user'])->findOrFail($id);
+        $stockIn = StockIn::with(['supplier', 'item.category', 'item.type', 'user'])->findOrFail($id);
         return response()->json($stockIn);
     }
 
