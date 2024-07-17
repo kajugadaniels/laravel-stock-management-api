@@ -107,4 +107,23 @@ class SupplierItemController extends Controller
             return response()->json(['message' => 'Failed to delete supplier item', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function getItemsBySupplier($supplier_id)
+    {
+        try {
+            $items = DB::table('supplier_items')
+                        ->join('items', 'supplier_items.item_id', '=', 'items.id')
+                        ->where('supplier_items.supplier_id', $supplier_id)
+                        ->select('items.*')
+                        ->get();
+
+            if ($items->isEmpty()) {
+                return response()->json(['message' => 'No items found for this supplier'], 404);
+            }
+
+            return response()->json(['data' => $items], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to retrieve items', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -13,6 +13,7 @@ Route::apiResource('types', TypeController::class);
 Route::apiResource('items', ItemController::class);
 Route::get('types/category/{categoryId}', [ItemController::class, 'getTypesByCategory']);
 Route::apiResource('suppliers', SupplierController::class);
+Route::get('supplier-items/supplier/{supplier_id}', [SupplierItemController::class, 'getItemsBySupplier']);
 Route::apiResource('supplier-items', SupplierItemController::class);
 
 // Registration routes
