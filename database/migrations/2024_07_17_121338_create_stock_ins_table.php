@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('plate_number');
             $table->string('batch_number')->nullable();
             $table->text('comment')->nullable();
+            $table->date('date');
+            $table->foreignId('registered_by')->constrained('users');
+            $table->boolean('loading_payment_status')->default(false);
             $table->timestamps();
         });
     }

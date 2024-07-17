@@ -14,6 +14,9 @@ class StockIn extends Model
         'plate_number',
         'batch_number',
         'comment',
+        'date',
+        'registered_by',
+        'loading_payment_status'
     ];
 
     public function supplier()
@@ -24,5 +27,10 @@ class StockIn extends Model
     public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'registered_by');
     }
 }

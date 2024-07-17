@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\StockIn;
-use App\Models\SupplierItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -12,7 +11,7 @@ class StockInController extends Controller
 {
     public function index()
     {
-        $stockIns = StockIn::with(['supplier', 'item'])->get();
+        $stockIns = StockIn::with(['supplier', 'item', 'user'])->get();
         return response()->json($stockIns);
     }
 
@@ -25,6 +24,9 @@ class StockInController extends Controller
             'plate_number' => 'required|string',
             'batch_number' => 'nullable|string',
             'comment' => 'nullable|string',
+            'date' => 'required|date',
+            'registered_by' => 'required|exists:users,id',
+            'loading_payment_status' => 'required|boolean'
         ]);
 
         $batchNumber = $request->batch_number ?? 'BAT' . random_int(1000, 9999);
@@ -36,6 +38,9 @@ class StockInController extends Controller
             'plate_number' => $request->plate_number,
             'batch_number' => $batchNumber,
             'comment' => $request->comment,
+            'date' => $request->date,
+            'registered_by' => $request->registered_by,
+            'loading_payment_status' => $request->loading_payment_status,
         ]);
 
         return response()->json($stockIn, 201);
@@ -43,7 +48,7 @@ class StockInController extends Controller
 
     public function show($id)
     {
-        $stockIn = StockIn::with(['supplier', 'item'])->findOrFail($id);
+        $stockIn = StockIn::with(['supplier', 'item', 'user'])->findOrFail($id);
         return response()->json($stockIn);
     }
 
@@ -58,6 +63,9 @@ class StockInController extends Controller
             'plate_number' => 'required|string',
             'batch_number' => 'nullable|string',
             'comment' => 'nullable|string',
+            'date' => 'required|date',
+            'registered_by' => 'required|exists:users,id',
+            'loading_payment_status' => 'required|boolean'
         ]);
 
         $batchNumber = $request->batch_number ?? $stockIn->batch_number;
@@ -69,6 +77,9 @@ class StockInController extends Controller
             'plate_number' => $request->plate_number,
             'batch_number' => $batchNumber,
             'comment' => $request->comment,
+            'date' => $request->date,
+            'registered_by' => $request->registered_by,
+            'loading_payment_status' => $request->loading_payment_status,
         ]);
 
         return response()->json($stockIn);
