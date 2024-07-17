@@ -10,14 +10,20 @@ class StockIn extends Model
     use HasFactory;
 
     protected $fillable = [
-        'supplier_item_id',
+        'supplier_id',
+        'item_id',
         'quantity',
         'plate_number',
         'batch_number',
-        'comment'
+        'comment',
     ];
 
-    public function supplierItem()
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function item()
     {
         return $this->belongsTo(SupplierItem::class);
     }

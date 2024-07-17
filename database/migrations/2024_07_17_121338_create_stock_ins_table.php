@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('stock_ins', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_item_id')->constrained('supplier_items');
+            $table->foreignId('supplier_id')->constrained('supplier_items');
+            $table->foreignId('item_id')->constrained('supplier_items');
             $table->integer('quantity');
             $table->string('plate_number');
             $table->string('batch_number')->nullable();
