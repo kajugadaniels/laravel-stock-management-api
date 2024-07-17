@@ -20,4 +20,14 @@ class Item extends Model
     {
         return $this->belongsTo(Type::class);
     }
+
+    public function supplierItems()
+    {
+        return $this->hasMany(SupplierItem::class);
+    }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'supplier_items');
+    }
 }
