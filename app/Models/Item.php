@@ -11,16 +11,6 @@ class Item extends Model
 
     protected $guarded = [];
 
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
-
-    public function stockIns()
-    {
-        return $this->hasMany(StockIn::class);
-    }
-
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -29,10 +19,5 @@ class Item extends Model
     public function type()
     {
         return $this->belongsTo(Type::class);
-    }
-
-    public function productItem()
-    {
-        return $this->belongsTo(ProductItem::class);
     }
 }
