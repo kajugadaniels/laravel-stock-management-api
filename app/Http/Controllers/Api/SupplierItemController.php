@@ -112,10 +112,12 @@ class SupplierItemController extends Controller
     {
         try {
             $items = DB::table('supplier_items')
-                        ->join('items', 'supplier_items.item_id', '=', 'items.id')
-                        ->where('supplier_items.supplier_id', $supplier_id)
-                        ->select('items.*')
-                        ->get();
+                ->join('items', 'supplier_items.item_id', '=', 'items.id')
+                ->join('categories', 'items.category_id', '=', 'categories.id') // Join with categories
+                ->join('types', 'items.type_id', '=', 'types.id') // Join with types
+                ->where('supplier_items.supplier_id', $supplier_id)
+                ->select('items.*', 'categories.name as category_name', 'types.name as type_name') // Select the necessary fields
+                ->get();
 
             if ($items->isEmpty()) {
                 return response()->json(['message' => 'No items found for this supplier'], 404);
