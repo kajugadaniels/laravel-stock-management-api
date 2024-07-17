@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\StockInController;
 use App\Http\Controllers\Api\SupplierItemController;
+use App\Http\Controllers\Api\EmployeeController;
 use Illuminate\Support\Facades\Route;
 
 Route::apiResource('categories', CategoryController::class);
@@ -16,7 +17,8 @@ Route::get('types/category/{categoryId}', [ItemController::class, 'getTypesByCat
 Route::apiResource('suppliers', SupplierController::class);
 Route::get('supplier-items/supplier/{supplier_id}', [SupplierItemController::class, 'getItemsBySupplier']);
 Route::apiResource('supplier-items', SupplierItemController::class);
-Route::apiResource('stock-ins', StockInController::class);
+Route::apiResource('employees', EmployeeController::class);
+
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
