@@ -20,4 +20,9 @@ class SupplierItem extends Model
     {
         return $this->belongsTo(Item::class);
     }
+
+    public function stockIns()
+    {
+        return $this->hasMany(StockIn::class);
+    }
 }
