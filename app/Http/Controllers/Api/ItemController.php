@@ -69,7 +69,7 @@ class ItemController extends Controller
             'name' => 'sometimes|required|string',
             'category_id' => 'sometimes|required|exists:categories,id',
             'type_id' => 'sometimes|nullable|exists:types,id',
-            'capacity' => 'sometimes|required|numeric',
+            'capacity' => 'sometimes|nullable|numeric',
             'unit' => 'sometimes|nullable|string|max:50',
         ]);
 
