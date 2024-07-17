@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\StockIn;
 use App\Models\SupplierItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 
 class StockInController extends Controller
 {
@@ -83,9 +84,12 @@ class StockInController extends Controller
 
     public function getItemsBySupplier($supplierId)
     {
-        $items = SupplierItem::where('supplier_id', $supplierId)
-            ->with('item')
-            ->get(['id', 'item_id']);
+        $items = DB::table('supplier_items')
+            ->join('items', 'supplier_items.item_id', '=', 'items.id')
+            ->select('items.id', 'items.name')
+            ->where('supplier_items.supplier_id', $supplierId)
+            ->orderBy('items.name')
+            ->get();
 
         return response()->json($items);
     }
