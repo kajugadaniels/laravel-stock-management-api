@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockIn extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'supplier_id',
         'item_id',
@@ -25,6 +23,6 @@ class StockIn extends Model
 
     public function item()
     {
-        return $this->belongsTo(SupplierItem::class);
+        return $this->belongsTo(Item::class);
     }
 }
