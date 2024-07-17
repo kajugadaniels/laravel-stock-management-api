@@ -18,7 +18,7 @@ Route::apiResource('suppliers', SupplierController::class);
 Route::get('supplier-items/supplier/{supplier_id}', [SupplierItemController::class, 'getItemsBySupplier']);
 Route::apiResource('supplier-items', SupplierItemController::class);
 Route::apiResource('employees', EmployeeController::class);
-
+Route::apiResource('stock-ins', StockInController::class);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
