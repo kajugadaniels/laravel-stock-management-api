@@ -5,11 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class StockIn extends Model
+class SupplierItem extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = ['supplier_id', 'item_id'];
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
 
     public function item()
     {

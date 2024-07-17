@@ -9,15 +9,15 @@ class Supplier extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = ['name', 'contact', 'address'];
 
-    public function item()
+    public function supplierItems()
     {
-        return $this->belongsTo(Item::class);
+        return $this->hasMany(SupplierItem::class);
     }
 
-    public function stockIns()
+    public function items()
     {
-        return $this->hasMany(StockIn::class);
+        return $this->belongsToMany(Item::class, 'supplier_items');
     }
 }
