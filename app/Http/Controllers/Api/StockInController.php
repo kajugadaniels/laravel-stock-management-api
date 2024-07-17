@@ -11,7 +11,7 @@ class StockInController extends Controller
 {
     public function index()
     {
-        $stockIns = StockIn::with(['supplier', 'item.category', 'item.type', 'user'])->get();
+        $stockIns = StockIn::with(['supplier', 'item.category', 'item.type', 'employee'])->get();
         return response()->json($stockIns);
     }
 
@@ -25,7 +25,7 @@ class StockInController extends Controller
             'batch_number' => 'nullable|string',
             'comment' => 'nullable|string',
             'date' => 'required|date',
-            'registered_by' => 'required|exists:users,id',
+            'registered_by' => 'required|exists:employees,id',
             'loading_payment_status' => 'required|boolean'
         ]);
 
@@ -48,7 +48,7 @@ class StockInController extends Controller
 
     public function show($id)
     {
-        $stockIn = StockIn::with(['supplier', 'item.category', 'item.type', 'user'])->findOrFail($id);
+        $stockIn = StockIn::with(['supplier', 'item.category', 'item.type', 'employee'])->findOrFail($id);
         return response()->json($stockIn);
     }
 
@@ -64,7 +64,7 @@ class StockInController extends Controller
             'batch_number' => 'nullable|string',
             'comment' => 'nullable|string',
             'date' => 'required|date',
-            'registered_by' => 'required|exists:users,id',
+            'registered_by' => 'required|exists:employees,id',
             'loading_payment_status' => 'required|boolean'
         ]);
 

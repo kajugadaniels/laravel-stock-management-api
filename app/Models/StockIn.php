@@ -29,8 +29,8 @@ class StockIn extends Model
         return $this->belongsTo(Item::class);
     }
 
-    public function user()
+    public function employee()
     {
-        return $this->belongsTo(User::class, 'registered_by');
+        return $this->belongsTo(Employee::class, 'registered_by');
     }
 }
