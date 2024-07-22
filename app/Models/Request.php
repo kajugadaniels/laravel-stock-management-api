@@ -34,4 +34,9 @@ class Request extends Model
     {
         return $this->belongsTo(Item::class, 'request_for_id');
     }
+
+    public function stockOut()
+    {
+        return $this->hasOne(StockOut::class);
+    }
 }
