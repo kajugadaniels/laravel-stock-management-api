@@ -14,7 +14,7 @@ class RequestController extends Controller
      */
     public function index()
     {
-        $requests = RequestModel::with(['item', 'contactPerson', 'requestFor'])->orderBy('id', 'desc')->get();
+        $requests = RequestModel::with(['item.item', 'contactPerson', 'requestFor'])->orderBy('id', 'desc')->get();
         return response()->json($requests);
     }
 
