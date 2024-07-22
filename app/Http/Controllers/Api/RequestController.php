@@ -14,7 +14,7 @@ class RequestController extends Controller
      */
     public function index()
     {
-        $requests = RequestModel::with(['stockIn.item'])->orderBy('id', 'desc')->get();
+        $requests = RequestModel::with(['item', 'contactPerson', 'requestFor'])->orderBy('id', 'desc')->get();
         return response()->json($requests);
     }
 
@@ -24,13 +24,13 @@ class RequestController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'stock_in_id' => 'required|integer|exists:stock_ins,id',
-            'contact_id' => 'required|integer|exists:employees,id',
-            'requester' => 'required|string|max:255',
+            'item_id' => 'required|integer|exists:stock_ins,id',
+            'contact_person_id' => 'required|integer|exists:employees,id',
+            'requester_name' => 'required|string|max:255',
             'request_from' => 'required|string|max:255',
             'status' => 'required|string|max:255',
-            'request_for' => 'required|integer|exists:items,id',
-            'qty' => 'required|integer|min:1',
+            'request_for_id' => 'required|integer|exists:items,id',
+            'quantity' => 'required|integer|min:1',
             'note' => 'nullable|string'
         ]);
 
@@ -48,7 +48,7 @@ class RequestController extends Controller
      */
     public function show(string $id)
     {
-        $requestModel = RequestModel::with(['stockIn.item'])->find($id);
+        $requestModel = RequestModel::with(['item', 'contactPerson', 'requestFor'])->find($id);
 
         if (is_null($requestModel)) {
             return response()->json(['message' => 'Request not found'], 404);
@@ -63,13 +63,13 @@ class RequestController extends Controller
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'stock_in_id' => 'sometimes|required|integer|exists:stock_ins,id',
-            'contact_id' => 'sometimes|required|integer|exists:employees,id',
-            'requester' => 'sometimes|required|string|max:255',
+            'item_id' => 'sometimes|required|integer|exists:stock_ins,id',
+            'contact_person_id' => 'sometimes|required|integer|exists:employees,id',
+            'requester_name' => 'sometimes|required|string|max:255',
             'request_from' => 'sometimes|required|string|max:255',
             'status' => 'sometimes|required|string|max:255',
-            'request_for' => 'sometimes|required|integer|exists:items,id',
-            'qty' => 'sometimes|required|integer|min:1',
+            'request_for_id' => 'sometimes|required|integer|exists:items,id',
+            'quantity' => 'sometimes|required|integer|min:1',
             'note' => 'nullable|string'
         ]);
 
