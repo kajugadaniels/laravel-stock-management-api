@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Request as RequestModel; 
+use App\Models\Request as RequestModel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +14,7 @@ class RequestController extends Controller
      */
     public function index()
     {
-        $requests = RequestModel::orderBy('id', 'desc')->get();
+        $requests = RequestModel::with(['stockIn.item'])->orderBy('id', 'desc')->get();
         return response()->json($requests);
     }
 
@@ -24,7 +24,7 @@ class RequestController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'item_id' => 'required|integer|exists:items,id',
+            'stock_in_id' => 'required|integer|exists:stock_ins,id',
             'contact_id' => 'required|integer|exists:employees,id',
             'requester' => 'required|string|max:255',
             'request_from' => 'required|string|max:255',
@@ -48,7 +48,7 @@ class RequestController extends Controller
      */
     public function show(string $id)
     {
-        $requestModel = RequestModel::find($id);
+        $requestModel = RequestModel::with(['stockIn.item'])->find($id);
 
         if (is_null($requestModel)) {
             return response()->json(['message' => 'Request not found'], 404);
@@ -63,7 +63,7 @@ class RequestController extends Controller
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'item_id' => 'sometimes|required|integer|exists:items,id',
+            'stock_in_id' => 'sometimes|required|integer|exists:stock_ins,id',
             'contact_id' => 'sometimes|required|integer|exists:employees,id',
             'requester' => 'sometimes|required|string|max:255',
             'request_from' => 'sometimes|required|string|max:255',

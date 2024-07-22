@@ -9,32 +9,29 @@ class Request extends Model
 {
     use HasFactory;
 
-    protected $table = 'requests';
-
     protected $fillable = [
         'item_id',
-        'contact_id', 
-        'requester',
+        'contact_person_id',
+        'requester_name',
         'request_from',
         'status',
-        'request_for',
-        'qty',
+        'request_for_id',
+        'quantity',
         'note'
     ];
 
-    // Relationships
     public function item()
     {
-        return $this->belongsTo(Item::class, 'item_id');
+        return $this->belongsTo(StockIn::class, 'item_id');
     }
 
-    public function employee()
+    public function contactPerson()
     {
-        return $this->belongsTo(Employee::class, 'contact_id');
+        return $this->belongsTo(Employee::class, 'contact_person_id');
     }
 
-    public function requestForItem()
+    public function requestFor()
     {
-        return $this->belongsTo(Item::class, 'request_for');
+        return $this->belongsTo(Item::class, 'request_for_id');
     }
 }
