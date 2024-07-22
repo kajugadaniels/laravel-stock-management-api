@@ -60,6 +60,9 @@ class StockOutController extends Controller
             // Reduce the quantity in stock_in table
             $stockIn->decrement('quantity', $request->quantity);
 
+            // Update request status to "Approved"
+            $requestModel->update(['status' => 'Approved']);
+
             // Commit the transaction
             DB::commit();
 
