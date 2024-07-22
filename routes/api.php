@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SupplierItemController;
 use App\Http\Controllers\Api\EmployeeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RequestController;
+use App\Http\Controllers\Api\StockOutController;
 
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('types', TypeController::class);
@@ -21,6 +22,7 @@ Route::apiResource('supplier-items', SupplierItemController::class);
 Route::apiResource('employees', EmployeeController::class);
 Route::apiResource('stock-ins', StockInController::class);
 Route::apiResource('requests', RequestController::class);
+Route::apiResource('stock-outs', StockOutController::class);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
