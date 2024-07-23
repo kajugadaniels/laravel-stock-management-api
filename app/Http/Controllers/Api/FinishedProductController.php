@@ -14,7 +14,13 @@ class FinishedProductController extends Controller
      */
     public function index()
     {
-        $finishedProducts = FinishedProduct::with('stockOut')->get();
+        $finishedProducts = FinishedProduct::with([
+            'stockOut.request.item.item',
+            'stockOut.request.item.item.category',
+            'stockOut.request.item.item.type',
+            'stockOut.request.requestFor'
+        ])->orderBy('id', 'desc')->get();
+
         return response()->json($finishedProducts);
     }
 
