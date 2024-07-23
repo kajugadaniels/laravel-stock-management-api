@@ -13,6 +13,7 @@ class StockOut extends Model
         'request_id',
         'quantity',
         'date',
+        'status',
     ];
 
     public function request()

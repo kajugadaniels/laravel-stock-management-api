@@ -99,58 +99,44 @@ class StockOutController extends Controller
      */
     public function update(Request $request, $id)
     {
-        Log::info('Update method called', $request->all());
+        Log::info('UpdateStatus method called', ['request_data' => $request->all(), 'stock_out_id' => $id]);
 
         $validator = Validator::make($request->all(), [
-            'request_id' => 'sometimes|required|integer|exists:requests,id',
-            'quantity' => 'sometimes|required|integer|min:1',
-            'date' => 'sometimes|required|date',
-            'status' => 'sometimes|required|string', // Add status validation
+            'status' => 'required|string', // Add status validation
         ]);
 
         if ($validator->fails()) {
+            Log::error('Validation failed', ['errors' => $validator->errors()]);
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
 
         $stockOut = StockOut::find($id);
 
         if (is_null($stockOut)) {
+            Log::error('Stock out not found', ['stock_out_id' => $id]);
             return response()->json(['message' => 'Stock out not found'], 404);
-        }
-
-        $requestModel = RequestModel::find($request->request_id);
-        $stockIn = StockIn::find($requestModel->item_id);
-
-        if ($request->has('quantity') && $request->quantity > ($stockIn->quantity + $stockOut->quantity)) {
-            return response()->json(['message' => 'Insufficient quantity in stock'], 400);
         }
 
         // Start a transaction to ensure data consistency
         DB::beginTransaction();
 
         try {
-            if ($request->has('quantity')) {
-                $difference = $request->quantity - $stockOut->quantity;
-                if ($difference > 0) {
-                    $stockIn->decrement('quantity', $difference);
-                } else {
-                    $stockIn->increment('quantity', abs($difference));
-                }
-            }
-
             // Update the stock out record
-            $stockOut->update($request->all());
+            $stockOut->status = $request->status;
+            $stockOut->save();
 
             // Commit the transaction
             DB::commit();
 
-            return response()->json(['message' => 'Stock out updated successfully', 'data' => $stockOut], 200);
+            Log::info('Stock out status updated successfully', ['stock_out_id' => $id]);
+
+            return response()->json(['message' => 'Stock out status updated successfully', 'data' => $stockOut], 200);
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
             DB::rollBack();
-            Log::error('Failed to update stock out', ['error' => $e->getMessage()]);
+            Log::error('Failed to update stock out status', ['error' => $e->getMessage()]);
 
-            return response()->json(['message' => 'Failed to update stock out', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to update stock out status', 'error' => $e->getMessage()], 500);
         }
     }
 

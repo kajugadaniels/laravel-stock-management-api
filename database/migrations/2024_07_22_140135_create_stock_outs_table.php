@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('request_id')->constrained()->onDelete('cascade');
             $table->integer('quantity');
+            $table->string('status')->default('pending')->nullable();
             $table->date('date');
             $table->timestamps();
         });
