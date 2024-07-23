@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SupplierItemController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\FinishedProductController;
 use App\Http\Controllers\Api\ProcessController;
+use App\Http\Controllers\Api\ProductStockInController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RequestController;
 use App\Http\Controllers\Api\StockOutController;
@@ -27,6 +28,7 @@ Route::apiResource('requests', RequestController::class);
 Route::apiResource('stock-outs', StockOutController::class);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
 Route::apiResource('finished-products', FinishedProductController::class);
+Route::apiResource('product-stock-ins', ProductStockInController::class);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
