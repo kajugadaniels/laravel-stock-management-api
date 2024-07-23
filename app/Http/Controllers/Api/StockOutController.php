@@ -33,6 +33,7 @@ class StockOutController extends Controller
             'request_id' => 'required|integer|exists:requests,id',
             'quantity' => 'required|integer|min:1',
             'date' => 'required|date',
+            'status' => 'required|string', // Add status validation
         ]);
 
         if ($validator->fails()) {
@@ -55,6 +56,7 @@ class StockOutController extends Controller
                 'request_id' => $request->request_id,
                 'quantity' => $request->quantity,
                 'date' => $request->date,
+                'status' => $request->status, // Add status
             ]);
 
             // Reduce the quantity in stock_in table
@@ -103,6 +105,7 @@ class StockOutController extends Controller
             'request_id' => 'sometimes|required|integer|exists:requests,id',
             'quantity' => 'sometimes|required|integer|min:1',
             'date' => 'sometimes|required|date',
+            'status' => 'sometimes|required|string', // Add status validation
         ]);
 
         if ($validator->fails()) {
