@@ -14,7 +14,13 @@ class ProductStockInController extends Controller
      */
     public function index()
     {
-        $productStockIns = ProductStockIn::with('finishedProduct')->orderBy('id', 'desc')->get();
+        $productStockIns = ProductStockIn::with([
+            'finishedProduct.stockOut.request.item.item',
+            'finishedProduct.stockOut.request.item.item.category',
+            'finishedProduct.stockOut.request.item.item.type',
+            'finishedProduct.stockOut.request.requestFor'
+        ])->orderBy('id', 'desc')->get();
+
         return response()->json($productStockIns);
     }
 
@@ -47,7 +53,12 @@ class ProductStockInController extends Controller
      */
     public function show($id)
     {
-        $productStockIn = ProductStockIn::with('finishedProduct')->find($id);
+        $productStockIn = ProductStockIn::with([
+            'finishedProduct.stockOut.request.item.item',
+            'finishedProduct.stockOut.request.item.item.category',
+            'finishedProduct.stockOut.request.item.item.type',
+            'finishedProduct.stockOut.request.requestFor'
+        ])->find($id);
 
         if (is_null($productStockIn)) {
             return response()->json(['message' => 'Product Stock In not found'], 404);

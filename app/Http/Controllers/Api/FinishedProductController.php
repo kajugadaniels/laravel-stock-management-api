@@ -51,7 +51,12 @@ class FinishedProductController extends Controller
      */
     public function show($id)
     {
-        $finishedProduct = FinishedProduct::with('stockOut')->find($id);
+        $finishedProduct = FinishedProduct::with([
+            'stockOut.request.item.item',
+            'stockOut.request.item.item.category',
+            'stockOut.request.item.item.type',
+            'stockOut.request.requestFor'
+        ])->find($id);
 
         if (is_null($finishedProduct)) {
             return response()->json(['message' => 'Finished Product not found'], 404);
