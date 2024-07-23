@@ -21,4 +21,9 @@ class FinishedProduct extends Model
     {
         return $this->belongsTo(StockOut::class);
     }
+
+    public function productStockIns()
+    {
+        return $this->hasMany(ProductStockIn::class);
+    }
 }
