@@ -5,15 +5,45 @@ namespace App\Http\Controllers\Api;
 use App\Models\StockIn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class StockInController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $stockIns = StockIn::with(['supplier', 'item.category', 'item.type', 'employee'])->get();
-        return response()->json($stockIns);
+        try {
+            $query = StockIn::with(['supplier', 'item.category', 'item.type', 'employee']);
+
+            if ($request->has('category') && !empty($request->category)) {
+                $query->whereHas('item', function ($q) use ($request) {
+                    $q->where('category_id', $request->category);
+                });
+            }
+
+            if ($request->has('type') && !empty($request->type)) {
+                $query->whereHas('item', function ($q) use ($request) {
+                    $q->where('type_id', $request->type);
+                });
+            }
+
+            if ($request->has('startDate') && !empty($request->startDate)) {
+                $query->where('date', '>=', $request->startDate);
+            }
+
+            if ($request->has('endDate') && !empty($request->endDate)) {
+                $query->where('date', '<=', $request->endDate);
+            }
+
+            $stockIns = $query->get();
+            return response()->json($stockIns);
+        } catch (\Exception $e) {
+            // Log the error message
+            Log::error('Error fetching stock ins: ' . $e->getMessage());
+            return response()->json(['message' => 'Internal Server Error'], 500);
+        }
     }
+
 
     public function store(Request $request)
     {
