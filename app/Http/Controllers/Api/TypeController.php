@@ -16,10 +16,12 @@ class TypeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:types,name',
             'category_id' => 'required|exists:categories,id'
         ]);
+
         $type = Type::create($request->all());
+
         return response()->json($type, 201);
     }
 
@@ -34,16 +36,20 @@ class TypeController extends Controller
 
     public function update(Request $request, $id)
     {
+        $type = Type::find($id);
+
+        if (is_null($type)) {
+            return response()->json(['message' => 'Type not found'], 404);
+        }
+
         $request->validate([
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string|max:255|unique:types,name,' . $type->id,
             'category_id' => 'sometimes|required|exists:categories,id'
         ]);
-        $type = Type::find($id);
-        if ($type) {
-            $type->update($request->all());
-            return response()->json($type, 200);
-        }
-        return response()->json(['message' => 'Type not found'], 404);
+
+        $type->update($request->all());
+
+        return response()->json($type, 200);
     }
 
     public function destroy($id)

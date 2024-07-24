@@ -15,8 +15,12 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name',
+        ]);
+
         $category = Category::create($request->all());
+
         return response()->json($category, 201);
     }
 
@@ -31,13 +35,19 @@ class CategoryController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate(['name' => 'required|string|max:255']);
         $category = Category::find($id);
-        if ($category) {
-            $category->update($request->all());
-            return response()->json($category, 200);
+
+        if (is_null($category)) {
+            return response()->json(['message' => 'Category not found'], 404);
         }
-        return response()->json(['message' => 'Category not found'], 404);
+
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+        ]);
+
+        $category->update($request->all());
+
+        return response()->json($category, 200);
     }
 
     public function destroy($id)
