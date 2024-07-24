@@ -17,7 +17,12 @@ class StockInController extends Controller
 
             if ($request->has('category') && !empty($request->category)) {
                 $query->whereHas('item', function ($q) use ($request) {
-                    $q->where('category_id', $request->category);
+                    $q->where('category_id', $request->category)
+                    ->where('name', '!=', 'Finished'); // Exclude 'Finished' category
+                });
+            } else {
+                $query->whereHas('item.category', function ($q) {
+                    $q->where('name', '!=', 'Finished'); // Exclude 'Finished' category
                 });
             }
 
@@ -35,6 +40,10 @@ class StockInController extends Controller
                 $query->where('date', '<=', $request->endDate);
             }
 
+            if ($request->has('loading_payment_status') && $request->loading_payment_status !== '') {
+                $query->where('loading_payment_status', $request->loading_payment_status === 'true');
+            }
+
             $stockIns = $query->get();
             return response()->json($stockIns);
         } catch (\Exception $e) {
@@ -43,7 +52,6 @@ class StockInController extends Controller
             return response()->json(['message' => 'Internal Server Error'], 500);
         }
     }
-
 
     public function store(Request $request)
     {
