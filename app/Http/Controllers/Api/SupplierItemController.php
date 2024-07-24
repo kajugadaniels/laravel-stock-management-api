@@ -38,6 +38,12 @@ class SupplierItemController extends Controller
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
 
+        // Check if supplier already supplies an item
+        $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)->first();
+        if ($existingSupplierItem) {
+            return response()->json(['message' => 'Supplier already supplies an item'], 400);
+        }
+
         try {
             $supplierItem = SupplierItem::create([
                 'supplier_id' => $request->supplier_id,
@@ -81,6 +87,14 @@ class SupplierItemController extends Controller
 
             if (is_null($supplierItem)) {
                 return response()->json(['message' => 'SupplierItem not found'], 404);
+            }
+
+            // Check if supplier already supplies an item
+            if ($request->has('supplier_id')) {
+                $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)->where('id', '!=', $id)->first();
+                if ($existingSupplierItem) {
+                    return response()->json(['message' => 'Supplier already supplies an item'], 400);
+                }
             }
 
             $supplierItem->update($request->all());
