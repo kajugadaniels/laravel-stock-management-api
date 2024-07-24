@@ -61,4 +61,17 @@ class TypeController extends Controller
         }
         return response()->json(['message' => 'Type not found'], 404);
     }
+
+    public function getTypesByCategory($categoryId)
+    {
+        try {
+            $types = Type::where('category_id', $categoryId)->get();
+            if ($types->isEmpty()) {
+                return response()->json(['message' => 'No types found for this category'], 404);
+            }
+            return response()->json($types, 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to fetch types', 'error' => $e->getMessage()], 500);
+        }
+    }
 }
