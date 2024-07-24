@@ -6,6 +6,7 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Supplier;
 use Illuminate\Support\Facades\Validator;
 
 class ItemController extends Controller
@@ -25,7 +26,7 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|unique:items,name',
+            'name' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'type_id' => 'nullable|exists:types,id',
             'capacity' => 'nullable|numeric',
@@ -64,14 +65,8 @@ class ItemController extends Controller
 
     public function update(Request $request, $id)
     {
-        $item = Item::find($id);
-
-        if (is_null($item)) {
-            return response()->json(['message' => 'Item not found'], 404);
-        }
-
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|unique:items,name,' . $item->id,
+            'name' => 'sometimes|required|string',
             'category_id' => 'sometimes|required|exists:categories,id',
             'type_id' => 'sometimes|nullable|exists:types,id',
             'capacity' => 'sometimes|nullable|numeric',
@@ -80,6 +75,12 @@ class ItemController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
+        }
+
+        $item = Item::find($id);
+
+        if (is_null($item)) {
+            return response()->json(['message' => 'Item not found'], 404);
         }
 
         $item->update($request->all());
