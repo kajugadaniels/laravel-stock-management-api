@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\SupplierItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
@@ -15,11 +15,11 @@ class SupplierItemController extends Controller
     {
         try {
             $supplierItems = DB::table('supplier_items')
-                                ->select('supplier_items.*', 'suppliers.name as supplier_name', 'items.name as item_name')
-                                ->join('suppliers', 'supplier_items.supplier_id', '=', 'suppliers.id')
-                                ->join('items', 'supplier_items.item_id', '=', 'items.id')
-                                ->orderBy('supplier_items.id', 'desc')
-                                ->get();
+                ->select('supplier_items.*', 'suppliers.name as supplier_name', 'items.name as item_name')
+                ->join('suppliers', 'supplier_items.supplier_id', '=', 'suppliers.id')
+                ->join('items', 'supplier_items.item_id', '=', 'items.id')
+                ->orderBy('supplier_items.id', 'desc')
+                ->get();
 
             return response()->json($supplierItems);
         } catch (Exception $e) {
@@ -113,10 +113,10 @@ class SupplierItemController extends Controller
         try {
             $items = DB::table('supplier_items')
                 ->join('items', 'supplier_items.item_id', '=', 'items.id')
-                ->join('categories', 'items.category_id', '=', 'categories.id') // Join with categories
-                ->join('types', 'items.type_id', '=', 'types.id') // Join with types
+                ->join('categories', 'items.category_id', '=', 'categories.id')
+                ->join('types', 'items.type_id', '=', 'types.id')
                 ->where('supplier_items.supplier_id', $supplier_id)
-                ->select('items.*', 'categories.name as category_name', 'types.name as type_name') // Select the necessary fields
+                ->select('items.*', 'categories.name as category_name', 'types.name as type_name')
                 ->get();
 
             if ($items->isEmpty()) {
@@ -124,8 +124,24 @@ class SupplierItemController extends Controller
             }
 
             return response()->json(['data' => $items], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['message' => 'Failed to retrieve items', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getAvailableItems()
+    {
+        try {
+            $items = DB::table('items')
+                ->join('categories', 'items.category_id', '=', 'categories.id')
+                ->join('types', 'items.type_id', '=', 'types.id')
+                ->where('categories.name', '!=', 'Finished')
+                ->select('items.*', 'categories.name as category_name', 'types.name as type_name')
+                ->get();
+
+            return response()->json(['data' => $items], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Failed to fetch available items', 'error' => $e->getMessage()], 500);
         }
     }
 }
