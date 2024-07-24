@@ -38,10 +38,12 @@ class SupplierItemController extends Controller
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
 
-        // Check if supplier already supplies an item
-        $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)->first();
+        // Check if the combination of supplier_id and item_id already exists
+        $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)
+            ->where('item_id', $request->item_id)
+            ->first();
         if ($existingSupplierItem) {
-            return response()->json(['message' => 'Supplier already supplies an item'], 400);
+            return response()->json(['message' => 'This supplier already supplies this item'], 400);
         }
 
         try {
@@ -89,11 +91,14 @@ class SupplierItemController extends Controller
                 return response()->json(['message' => 'SupplierItem not found'], 404);
             }
 
-            // Check if supplier already supplies an item
-            if ($request->has('supplier_id')) {
-                $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)->where('id', '!=', $id)->first();
+            // Check if the combination of supplier_id and item_id already exists
+            if ($request->has('supplier_id') && $request->has('item_id')) {
+                $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)
+                    ->where('item_id', $request->item_id)
+                    ->where('id', '!=', $id)
+                    ->first();
                 if ($existingSupplierItem) {
-                    return response()->json(['message' => 'Supplier already supplies an item'], 400);
+                    return response()->json(['message' => 'This supplier already supplies this item'], 400);
                 }
             }
 
