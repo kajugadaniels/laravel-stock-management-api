@@ -17,8 +17,20 @@ class RequestController extends Controller
      */
     public function index()
     {
-        $requests = RequestModel::with(['items', 'contactPerson'])->orderBy('id', 'desc')->get();
-        return response()->json($requests);
+        try {
+            $requests = RequestModel::with([
+                'items.item', // Change this line
+                'contactPerson',
+                'requestFor'
+            ])
+            ->orderBy('id', 'desc')
+            ->get();
+
+            return response()->json($requests);
+        } catch (\Exception $e) {
+            Log::error('Error in index method: ' . $e->getMessage());
+            return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
