@@ -39,4 +39,12 @@ class Request extends Model
     {
         return $this->hasOne(StockOut::class);
     }
+
+     // Define the relationship back to StockIn
+     public function stockIn()
+     {
+         return $this->belongsTo(StockIn::class, 'item_id');
+     }
+
+    
 }
