@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockIn extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'supplier_id',
         'item_id',
@@ -18,6 +20,9 @@ class StockIn extends Model
         'registered_by',
         'loading_payment_status'
     ];
+
+
+    
 
     public function supplier()
     {
