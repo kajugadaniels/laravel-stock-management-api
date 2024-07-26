@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Request as RequestModel;
 use App\Models\Item;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Models\Request as RequestModel;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
 {
@@ -46,10 +47,9 @@ class RequestController extends Controller
             'request_from' => 'required|string|max:255',
             'status' => 'required|string|max:255',
             'note' => 'nullable|string',
-            'items' => 'required|array',
+            'items' => 'required|array|min:1',
             'items.*.item_id' => 'required|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'request_for_id' => 'required|integer|exists:items,id'
         ]);
 
         if ($validator->fails()) {
@@ -58,32 +58,34 @@ class RequestController extends Controller
         }
 
         try {
-            // Set initial quantity to 0
-            $requestModel = RequestModel::create($request->only([
-                'contact_person_id',
-                'requester_name',
-                'request_from',
-                'status',
-                'note',
-                'request_for_id'
-            ]) + ['quantity' => 0]);
+            \DB::beginTransaction();
 
-            $totalQuantity = 0;
+            $totalQuantity = collect($request->items)->sum('quantity');
+
+            $requestModel = RequestModel::create([
+                'contact_person_id' => $request->contact_person_id,
+                'requester_name' => $request->requester_name,
+                'request_from' => $request->request_from,
+                'status' => $request->status,
+                'note' => $request->note,
+                'request_for_id' => $request->items[0]['item_id'], // Set to the first item's ID
+                'quantity' => $totalQuantity,
+            ]);
+
             foreach ($request->items as $item) {
-                $totalQuantity += $item['quantity'];
-                Log::info('Attaching item to request:', ['stock_in_id' => $item['item_id'], 'quantity' => $item['quantity']]);
                 $requestModel->items()->attach($item['item_id'], ['quantity' => $item['quantity']]);
             }
 
-            // Update the total quantity
-            $requestModel->update(['quantity' => $totalQuantity]);
+            DB::commit();
 
             Log::info('Request created successfully:', $requestModel->toArray());
             return response()->json(['message' => 'Request created successfully', 'data' => $requestModel->load('items')], 201);
         } catch (QueryException $e) {
+            \DB::rollBack();
             Log::error('QueryException:', ['message' => $e->getMessage(), 'sql' => $e->getSql(), 'bindings' => $e->getBindings()]);
             return response()->json(['message' => 'Database Error', 'error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
+            \DB::rollBack();
             Log::error('Exception:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
         }
