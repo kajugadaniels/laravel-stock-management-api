@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\StockIn;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
@@ -15,33 +14,37 @@ class StockInController extends Controller
         try {
             $query = StockIn::with(['supplier', 'item.category', 'item.type', 'employee']);
 
-            if ($request->has('category') && !empty($request->category)) {
+            // Handle category filter
+            if (!empty($request->category)) {
                 $query->whereHas('item', function ($q) use ($request) {
                     $q->where('category_id', $request->category)
-                    ->where('name', '!=', 'Finished'); // Exclude 'Finished' category
+                      ->where('name', '!=', 'Finished');
                 });
             } else {
                 $query->whereHas('item.category', function ($q) {
-                    $q->where('name', '!=', 'Finished'); // Exclude 'Finished' category
+                    $q->where('name', '!=', 'Finished');
                 });
             }
 
-            if ($request->has('type') && !empty($request->type)) {
+            // Handle type filter
+            if (!empty($request->type)) {
                 $query->whereHas('item', function ($q) use ($request) {
                     $q->where('type_id', $request->type);
                 });
             }
 
-            if ($request->has('startDate') && !empty($request->startDate)) {
+            // Handle date filters
+            if (!empty($request->startDate)) {
                 $query->where('date', '>=', $request->startDate);
             }
-
-            if ($request->has('endDate') && !empty($request->endDate)) {
+            if (!empty($request->endDate)) {
                 $query->where('date', '<=', $request->endDate);
             }
 
-            if ($request->has('loading_payment_status') && $request->loading_payment_status !== '') {
-                $query->where('loading_payment_status', $request->loading_payment_status === 'true');
+            // Handle loading_payment_status filter
+            if ($request->filled('loading_payment_status')) {
+                $status = filter_var($request->loading_payment_status, FILTER_VALIDATE_BOOLEAN);
+                $query->where('loading_payment_status', $status);
             }
 
             $stockIns = $query->get();
@@ -126,9 +129,15 @@ class StockInController extends Controller
     public function destroy($id)
     {
         $stockIn = StockIn::findOrFail($id);
+
+        // Check if there are associated requests
+        if ($stockIn->requests()->exists()) {
+            return response()->json(['message' => 'You cannot delete the record because it is used in request.'], 400);
+        }
+
         $stockIn->delete();
 
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Stock In deleted successfully.'], 204);
     }
 
     public function getItemsBySupplier($supplierId)
