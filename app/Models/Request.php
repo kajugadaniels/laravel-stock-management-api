@@ -10,7 +10,6 @@ class Request extends Model
     use HasFactory;
 
     protected $fillable = [
-        'item_id',
         'contact_person_id',
         'requester_name',
         'request_from',
@@ -20,9 +19,9 @@ class Request extends Model
         'note'
     ];
 
-    public function item()
+    public function items()
     {
-        return $this->belongsTo(StockIn::class, 'item_id');
+        return $this->belongsToMany(StockIn::class, 'request_items', 'request_id', 'stock_in_id')->withPivot('quantity');
     }
 
     public function contactPerson()

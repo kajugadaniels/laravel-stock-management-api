@@ -13,7 +13,6 @@ class CreateRequestsTable extends Migration
     {
         Schema::create('requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id')->constrained('stock_ins')->onDelete('cascade');
             $table->foreignId('contact_person_id')->constrained('employees')->onDelete('cascade');
             $table->string('requester_name');
             $table->string('request_from');
