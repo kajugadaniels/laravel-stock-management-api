@@ -21,7 +21,7 @@ class Request extends Model
 
     public function items()
     {
-        return $this->belongsToMany(Item::class, 'request_items')->withPivot('quantity');
+        return $this->belongsToMany(StockIn::class, 'request_items', 'request_id', 'stock_in_id')->withPivot('quantity');
     }
 
     public function contactPerson()

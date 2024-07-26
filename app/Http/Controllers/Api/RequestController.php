@@ -35,7 +35,7 @@ class RequestController extends Controller
             'status' => 'required|string|max:255',
             'note' => 'nullable|string',
             'items' => 'required|array',
-            'items.*.item_id' => 'required|integer|exists:items,id',
+            'items.*.item_id' => 'required|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required|integer|min:1',
             'request_for_id' => 'required|integer|exists:items,id'
         ]);
@@ -59,7 +59,7 @@ class RequestController extends Controller
             $totalQuantity = 0;
             foreach ($request->items as $item) {
                 $totalQuantity += $item['quantity'];
-                Log::info('Attaching item to request:', ['item_id' => $item['item_id'], 'quantity' => $item['quantity']]);
+                Log::info('Attaching item to request:', ['stock_in_id' => $item['item_id'], 'quantity' => $item['quantity']]);
                 $requestModel->items()->attach($item['item_id'], ['quantity' => $item['quantity']]);
             }
 
@@ -97,7 +97,7 @@ class RequestController extends Controller
             'status' => 'sometimes|required|string|max:255',
             'note' => 'nullable|string',
             'items' => 'sometimes|required|array',
-            'items.*.item_id' => 'required_with:items|integer|exists:items,id',
+            'items.*.item_id' => 'required_with:items|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required_with:items|integer|min:1',
             'request_for_id' => 'sometimes|required|integer|exists:items,id'
         ]);
