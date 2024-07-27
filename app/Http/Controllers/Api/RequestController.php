@@ -20,7 +20,7 @@ class RequestController extends Controller
     {
         try {
             $requests = RequestModel::with([
-                'items.item', // Change this line
+                'items.item',
                 'contactPerson',
                 'requestFor'
             ])
@@ -47,6 +47,7 @@ class RequestController extends Controller
             'request_from' => 'required|string|max:255',
             'status' => 'required|string|max:255',
             'note' => 'nullable|string',
+            'request_for_id' => 'required|integer|exists:items,id',
             'items' => 'required|array|min:1',
             'items.*.item_id' => 'required|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -58,7 +59,7 @@ class RequestController extends Controller
         }
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $totalQuantity = collect($request->items)->sum('quantity');
 
@@ -68,7 +69,7 @@ class RequestController extends Controller
                 'request_from' => $request->request_from,
                 'status' => $request->status,
                 'note' => $request->note,
-                'request_for_id' => $request->items[0]['item_id'],
+                'request_for_id' => $request->request_for_id,
                 'quantity' => $totalQuantity,
             ]);
 
@@ -81,11 +82,11 @@ class RequestController extends Controller
             Log::info('Request created successfully:', $requestModel->toArray());
             return response()->json(['message' => 'Request created successfully', 'data' => $requestModel->load('items')], 201);
         } catch (QueryException $e) {
-            \DB::rollBack();
+            DB::rollBack();
             Log::error('QueryException:', ['message' => $e->getMessage(), 'sql' => $e->getSql(), 'bindings' => $e->getBindings()]);
             return response()->json(['message' => 'Database Error', 'error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             Log::error('Exception:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
         }
@@ -120,10 +121,10 @@ class RequestController extends Controller
             'request_from' => 'sometimes|required|string|max:255',
             'status' => 'sometimes|required|string|max:255',
             'note' => 'nullable|string',
+            'request_for_id' => 'sometimes|required|integer|exists:items,id',
             'items' => 'sometimes|required|array',
             'items.*.item_id' => 'required_with:items|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required_with:items|integer|min:1',
-            'request_for_id' => 'sometimes|required|integer|exists:items,id'
         ]);
 
         if ($validator->fails()) {
