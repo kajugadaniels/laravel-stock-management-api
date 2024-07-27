@@ -182,18 +182,14 @@ class RequestController extends Controller
 
     public function getRawMaterialItems()
     {
-        try {
-            $items = DB::table('stock_ins')
-                ->join('items', 'stock_ins.item_id', '=', 'items.id')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->where('categories.name', 'Raw Materials')
-                ->select('stock_ins.id', 'items.name', 'items.type_id', 'stock_ins.quantity', 'stock_ins.supplier_id')
-                ->get();
+        $items = DB::table('stock_ins')
+            ->join('items', 'stock_ins.item_id', '=', 'items.id')
+            ->join('categories', 'items.category_id', '=', 'categories.id')
+            ->where('categories.name', 'Raw Materials')
+            ->where('stock_ins.quantity', '>', 0)
+            ->select('stock_ins.id', 'items.name', 'items.type_id', 'stock_ins.supplier_id', 'stock_ins.quantity')
+            ->get();
 
-            return response()->json($items);
-        } catch (\Exception $e) {
-            Log::error('Error in getRawMaterialItems method: ' . $e->getMessage());
-            return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
-        }
+        return response()->json($items);
     }
 }
