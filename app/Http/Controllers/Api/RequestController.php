@@ -93,13 +93,23 @@ class RequestController extends Controller
 
     public function show(string $id)
     {
-        $requestModel = RequestModel::with(['items', 'contactPerson'])->find($id);
+        try {
+            $requestModel = RequestModel::with([
+                'items.item', // Load the item details for each item in the request
+                'items.supplier', // Load the supplier details for each item in the request
+                'contactPerson',
+                'requestFor'
+            ])->find($id);
 
-        if (is_null($requestModel)) {
-            return response()->json(['message' => 'Request not found'], 404);
+            if (is_null($requestModel)) {
+                return response()->json(['message' => 'Request not found'], 404);
+            }
+
+            return response()->json($requestModel);
+        } catch (\Exception $e) {
+            Log::error('Error in show method: ' . $e->getMessage());
+            return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json($requestModel);
     }
 
     public function update(Request $request, string $id)
