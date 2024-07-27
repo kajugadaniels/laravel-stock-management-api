@@ -68,7 +68,7 @@ class RequestController extends Controller
                 'request_from' => $request->request_from,
                 'status' => $request->status,
                 'note' => $request->note,
-                'request_for_id' => $request->items[0]['item_id'], // Set to the first item's ID
+                'request_for_id' => $request->items[0]['item_id'],
                 'quantity' => $totalQuantity,
             ]);
 
@@ -95,8 +95,8 @@ class RequestController extends Controller
     {
         try {
             $requestModel = RequestModel::with([
-                'items.item', // Load the item details for each item in the request
-                'items.supplier', // Load the supplier details for each item in the request
+                'items.item',
+                'items.supplier',
                 'contactPerson',
                 'requestFor'
             ])->find($id);
