@@ -18,7 +18,7 @@ class StockOutController extends Controller
      */
     public function index()
     {
-        $stockOuts = StockOut::with(['request.item', 'request.contactPerson', 'request.requestFor'])->orderBy('id', 'desc')->get();
+        $stockOuts = StockOut::with(['request.items.item', 'request.contactPerson', 'request.requestFor'])->orderBy('id', 'desc')->get();
         return response()->json($stockOuts);
     }
 
@@ -31,9 +31,11 @@ class StockOutController extends Controller
 
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|integer|exists:requests,id',
-            'quantity' => 'required|integer|min:1',
+            'items' => 'required|array|min:1',
+            'items.*.item_id' => 'required|integer|exists:stock_ins,id',
+            'items.*.quantity' => 'required|integer|min:1',
             'date' => 'required|date',
-            'status' => 'required|string', // Add status validation
+            'status' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -41,36 +43,39 @@ class StockOutController extends Controller
         }
 
         $requestModel = RequestModel::find($request->request_id);
-        $stockIn = StockIn::find($requestModel->item_id);
 
-        if (!$stockIn || $stockIn->quantity < $request->quantity) {
-            return response()->json(['message' => 'Insufficient quantity in stock'], 400);
+        // Check availability for each item
+        foreach ($request->items as $item) {
+            $stockIn = StockIn::find($item['item_id']);
+            if (!$stockIn || $stockIn->quantity < $item['quantity']) {
+                return response()->json(['message' => 'Insufficient quantity in stock for item ID ' . $item['item_id']], 400);
+            }
         }
 
-        // Start a transaction to ensure data consistency
         DB::beginTransaction();
 
         try {
-            // Create a new stock out record
-            $stockOut = StockOut::create([
-                'request_id' => $request->request_id,
-                'quantity' => $request->quantity,
-                'date' => $request->date,
-                'status' => $request->status, // Add status
-            ]);
+            // Create a new stock out record for each item
+            foreach ($request->items as $item) {
+                StockOut::create([
+                    'request_id' => $request->request_id,
+                    'quantity' => $item['quantity'],
+                    'date' => $request->date,
+                    'status' => $request->status,
+                ]);
 
-            // Reduce the quantity in stock_in table
-            $stockIn->decrement('quantity', $request->quantity);
+                // Reduce the quantity in stock_in table
+                $stockIn = StockIn::find($item['item_id']);
+                $stockIn->decrement('quantity', $item['quantity']);
+            }
 
             // Update request status to "Approved"
             $requestModel->update(['status' => 'Approved']);
 
-            // Commit the transaction
             DB::commit();
 
-            return response()->json(['message' => 'Stock out recorded successfully', 'data' => $stockOut], 201);
+            return response()->json(['message' => 'Stock out recorded successfully'], 201);
         } catch (\Exception $e) {
-            // Rollback the transaction in case of error
             DB::rollBack();
             Log::error('Failed to record stock out', ['error' => $e->getMessage()]);
 
@@ -85,7 +90,7 @@ class StockOutController extends Controller
     {
         Log::info('Show method called', ['id' => $id]);
 
-        $stockOut = StockOut::with('request')->find($id);
+        $stockOut = StockOut::with('request.items.item')->find($id);
 
         if (is_null($stockOut)) {
             return response()->json(['message' => 'Stock out not found'], 404);
@@ -102,7 +107,7 @@ class StockOutController extends Controller
         Log::info('UpdateStatus method called', ['request_data' => $request->all(), 'stock_out_id' => $id]);
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string', // Add status validation
+            'status' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -117,22 +122,18 @@ class StockOutController extends Controller
             return response()->json(['message' => 'Stock out not found'], 404);
         }
 
-        // Start a transaction to ensure data consistency
         DB::beginTransaction();
 
         try {
-            // Update the stock out record
             $stockOut->status = $request->status;
             $stockOut->save();
 
-            // Commit the transaction
             DB::commit();
 
             Log::info('Stock out status updated successfully', ['stock_out_id' => $id]);
 
             return response()->json(['message' => 'Stock out status updated successfully', 'data' => $stockOut], 200);
         } catch (\Exception $e) {
-            // Rollback the transaction in case of error
             DB::rollBack();
             Log::error('Failed to update stock out status', ['error' => $e->getMessage()]);
 
@@ -153,7 +154,6 @@ class StockOutController extends Controller
             return response()->json(['message' => 'Stock out not found'], 404);
         }
 
-        // Start a transaction to ensure data consistency
         DB::beginTransaction();
 
         try {
@@ -164,12 +164,10 @@ class StockOutController extends Controller
             // Delete the stock out record
             $stockOut->delete();
 
-            // Commit the transaction
             DB::commit();
 
             return response()->json(['message' => 'Stock out deleted successfully'], 200);
         } catch (\Exception $e) {
-            // Rollback the transaction in case of error
             DB::rollBack();
             Log::error('Failed to delete stock out', ['error' => $e->getMessage()]);
 
