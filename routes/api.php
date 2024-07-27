@@ -27,6 +27,7 @@ Route::apiResource('employees', EmployeeController::class);
 Route::apiResource('stock-ins', StockInController::class);
 Route::apiResource('requests', RequestController::class);
 Route::get('finished-items', [RequestController::class, 'getFinishedItems']);
+Route::get('raw-material-items', [RequestController::class, 'getRawMaterialItems']);
 Route::apiResource('stock-outs', StockOutController::class);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
 Route::apiResource('finished-products', FinishedProductController::class);
