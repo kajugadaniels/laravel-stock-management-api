@@ -11,12 +11,17 @@ class ProcessController extends Controller
     public function getDetailedStockOuts()
     {
         $stockOuts = StockOut::with([
-            'request.item.item',
-            'request.item.item.category',
-            'request.item.item.type',
+            'request.items.item',
+            'request.items.item.category',
+            'request.items.item.type',
             'request.contactPerson',
             'request.requestFor'
-        ])->orderBy('id', 'desc')->get();
+        ])
+        ->whereHas('request', function($query) {
+            $query->where('request_from', 'Production');
+        })
+        ->orderBy('id', 'desc')
+        ->get();
 
         return response()->json($stockOuts);
     }
