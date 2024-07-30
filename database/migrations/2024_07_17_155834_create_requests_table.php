@@ -17,7 +17,7 @@ class CreateRequestsTable extends Migration
             $table->string('requester_name');
             $table->string('request_from');
             $table->string('status')->default('Pending');
-            $table->foreignId('request_for_id')->constrained('items')->onDelete('cascade')->nullable();
+            $table->foreignId('request_for_id')->nullable()->default(1)->constrained('items')->onDelete('cascade');
             $table->integer('quantity');
             $table->text('note')->nullable();
             $table->timestamps();

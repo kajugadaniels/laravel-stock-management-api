@@ -47,7 +47,7 @@ class RequestController extends Controller
             'request_from' => 'required|string|max:255',
             'status' => 'required|string|max:255',
             'note' => 'nullable|string',
-            'request_for_id' => 'integer|exists:items,id',
+            'request_for_id' => 'nullable|integer|exists:items,id',
             'items' => 'required|array|min:1',
             'items.*.item_id' => 'required|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -57,6 +57,8 @@ class RequestController extends Controller
             Log::error('Validation failed:', $validator->errors()->toArray());
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
+
+        $request_for_id = $request->get('request_for_id', 0);
 
         try {
             DB::beginTransaction();
@@ -69,7 +71,7 @@ class RequestController extends Controller
                 'request_from' => $request->request_from,
                 'status' => $request->status,
                 'note' => $request->note,
-                'request_for_id' => $request->request_for_id,
+                'request_for_id' => $request_for_id,
                 'quantity' => $totalQuantity,
             ]);
 
@@ -121,7 +123,7 @@ class RequestController extends Controller
             'request_from' => 'sometimes|required|string|max:255',
             'status' => 'sometimes|required|string|max:255',
             'note' => 'nullable|string',
-            'request_for_id' => 'integer|exists:items,id',
+            'request_for_id' => 'nullable|integer|exists:items,id',
             'items' => 'sometimes|required|array',
             'items.*.item_id' => 'required_with:items|integer|exists:stock_ins,id',
             'items.*.quantity' => 'required_with:items|integer|min:1',
@@ -137,14 +139,15 @@ class RequestController extends Controller
             return response()->json(['message' => 'Request not found'], 404);
         }
 
-        $requestModel->update($request->only([
+        $request_for_id = $request->get('request_for_id', 0);
+
+        $requestModel->update(array_merge($request->only([
             'contact_person_id',
             'requester_name',
             'request_from',
             'status',
             'note',
-            'request_for_id'
-        ]));
+        ]), ['request_for_id' => $request_for_id]));
 
         if ($request->has('items')) {
             $totalQuantity = 0;
