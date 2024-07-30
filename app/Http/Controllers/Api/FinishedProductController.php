@@ -15,9 +15,9 @@ class FinishedProductController extends Controller
     public function index()
     {
         $finishedProducts = FinishedProduct::with([
-            'stockOut.request.item.item',
-            'stockOut.request.item.item.category',
-            'stockOut.request.item.item.type',
+            'stockOut.request.items.item',
+            'stockOut.request.items.item.category',
+            'stockOut.request.items.item.type',
             'stockOut.request.requestFor'
         ])->orderBy('id', 'desc')->get();
 
@@ -56,9 +56,9 @@ class FinishedProductController extends Controller
     public function show($id)
     {
         $finishedProduct = FinishedProduct::with([
-            'stockOut.request.item.item',
-            'stockOut.request.item.item.category',
-            'stockOut.request.item.item.type',
+            'stockOut.request.items.item',
+            'stockOut.request.items.item.category',
+            'stockOut.request.items.item.type',
             'stockOut.request.requestFor'
         ])->find($id);
 
