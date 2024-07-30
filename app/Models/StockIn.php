@@ -22,11 +22,11 @@ class StockIn extends Model
     ];
 
 
-     // Define the relationship to requests
-     public function requests()
-     {
-         return $this->hasMany(Request::class, 'item_id');
-     }
+    // Define the relationship to requests
+    public function requests()
+    {
+        return $this->hasMany(Request::class, 'item_id');
+    }
 
     public function supplier()
     {
