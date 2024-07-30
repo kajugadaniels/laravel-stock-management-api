@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         try {
@@ -34,9 +31,6 @@ class RequestController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         Log::info('Request data:', $request->all());
@@ -177,9 +171,10 @@ class RequestController extends Controller
 
     public function getFinishedItems()
     {
-        $items = Item::whereHas('category', function ($query) {
-            $query->where('name', 'Finished');
-        })->get();
+        $items = Item::with('category')
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'Finished');
+            })->get();
 
         return response()->json($items);
     }
