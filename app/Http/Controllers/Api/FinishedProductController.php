@@ -43,6 +43,10 @@ class FinishedProductController extends Controller
 
         $finishedProduct = FinishedProduct::create($request->all());
 
+        $stockOut = $finishedProduct->stockOut;
+        $stockOut->status = 'Finished';
+        $stockOut->save();
+
         return response()->json(['message' => 'Finished Product created successfully', 'data' => $finishedProduct], 201);
     }
 
