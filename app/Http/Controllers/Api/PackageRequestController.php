@@ -190,7 +190,9 @@ class PackageRequestController extends Controller {
                 'types.name as type_name',
                 'stock_ins.supplier_id',
                 'suppliers.name as supplier_name',
-                'stock_ins.quantity'
+                'stock_ins.quantity',
+                'items.capacity',
+                'items.unit'
             )
             ->get();
 
