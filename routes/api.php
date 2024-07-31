@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\StockInController;
 use App\Http\Controllers\Api\SupplierItemController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\FinishedProductController;
+use App\Http\Controllers\Api\PackageRequestController;
 use App\Http\Controllers\Api\ProcessController;
 use App\Http\Controllers\Api\ProductStockInController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,7 @@ Route::get('raw-material-items', [RequestController::class, 'getRawMaterialItems
 Route::apiResource('stock-outs', StockOutController::class);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
 Route::apiResource('finished-products', FinishedProductController::class);
+Route::apiResource('package-requests', PackageRequestController::class);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
 
 // Registration routes
