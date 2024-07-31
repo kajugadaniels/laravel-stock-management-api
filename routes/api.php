@@ -33,6 +33,7 @@ Route::apiResource('stock-outs', StockOutController::class);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
 Route::apiResource('finished-products', FinishedProductController::class);
 Route::apiResource('package-requests', PackageRequestController::class);
+Route::get('package-items', [PackageRequestController::class, 'getPackageItems']);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
 
 // Registration routes

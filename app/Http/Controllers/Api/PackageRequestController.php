@@ -173,4 +173,27 @@ class PackageRequestController extends Controller {
             return response()->json(['message' => 'Failed to delete package request', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function getPackageItems()
+    {
+        $items = DB::table('stock_ins')
+            ->join('items', 'stock_ins.item_id', '=', 'items.id')
+            ->join('categories', 'items.category_id', '=', 'categories.id')
+            ->join('types', 'items.type_id', '=', 'types.id')
+            ->join('suppliers', 'stock_ins.supplier_id', '=', 'suppliers.id')
+            ->where('categories.name', 'Packages')
+            ->where('stock_ins.quantity', '>', 0)
+            ->select(
+                'stock_ins.id',
+                'items.name',
+                'items.type_id',
+                'types.name as type_name',
+                'stock_ins.supplier_id',
+                'suppliers.name as supplier_name',
+                'stock_ins.quantity'
+            )
+            ->get();
+
+        return response()->json($items);
+    }
 }
