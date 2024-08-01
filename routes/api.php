@@ -32,6 +32,7 @@ Route::get('raw-material-items', [RequestController::class, 'getRawMaterialItems
 Route::get('package-items', [RequestController::class, 'getPackageItems']);
 Route::apiResource('stock-outs', StockOutController::class);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
+Route::get('package-stock-outs', [ProcessController::class, 'getDetailedPackageStockOuts']);
 Route::apiResource('finished-products', FinishedProductController::class);
 Route::apiResource('package-requests', PackageRequestController::class);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
