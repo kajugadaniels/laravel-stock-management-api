@@ -46,51 +46,75 @@ class ProcessController extends Controller
                     $query->where('name', 'Packages');
                 });
             },
-            'request.items.item',
-            'request.items.item.category',
-            'request.items.item.type',
+            'request.items.item' => function($query) {
+                $query->with('category', 'type');
+            },
             'request.contactPerson',
             'request.requestFor'
         ])
         ->whereHas('request', function($query) {
             $query->where('request_from', 'Production')
-                    ->whereHas('items.item.category', function($query) {
-                        $query->where('name', 'Packages');
-                    });
+                ->whereHas('items.item.category', function($query) {
+                    $query->where('name', 'Packages');
+                });
         })
         ->orderBy('id', 'desc')
-        ->get();
+        ->get()
+        ->map(function ($stockOut) {
+            $stockOut->unmergedItems = $stockOut->request->items->map(function ($item) {
+                return [
+                    'item_id' => $item->item->id,
+                    'item_name' => $item->item->name,
+                    'capacity' => $item->item->capacity,
+                    'unit' => $item->item->unit,
+                    'category' => $item->item->category->name,
+                    'type' => $item->item->type->name,
+                    'quantity' => $item->pivot->quantity,
+                ];
+            });
+            return $stockOut;
+        });
 
         return response()->json($stockOuts);
     }
 
     public function getUnmergedPackageStockOuts()
     {
-        $packages = DB::table('stock_outs')
-            ->join('requests', 'stock_outs.request_id', '=', 'requests.id')
-            ->join('request_items', 'requests.id', '=', 'request_items.request_id')
-            ->join('items', 'request_items.stock_in_id', '=', 'items.id')
-            ->join('categories', 'items.category_id', '=', 'categories.id')
-            ->join('types', 'items.type_id', '=', 'types.id')
-            ->select(
-                'stock_outs.id as stock_out_id',
-                'requests.id as request_id',
-                'items.id as item_id',
-                'items.name as item_name',
-                'items.capacity',
-                'items.unit',
-                'categories.name as category_name',
-                'types.name as type_name',
-                'request_items.quantity as requested_quantity',
-                'stock_outs.quantity as stock_out_quantity',
-                'stock_outs.status',
-                'stock_outs.date'
-            )
-            ->where('requests.request_from', 'Production')
-            ->where('categories.name', 'Packages')
-            ->orderBy('stock_outs.id', 'desc')
-            ->get();
+        $stockOuts = StockOut::with([
+            'request.items' => function($query) {
+                $query->whereHas('item.category', function($query) {
+                    $query->where('name', 'Packages');
+                });
+            },
+            'request.items.item' => function($query) {
+                $query->with('category', 'type');
+            },
+            'request.contactPerson',
+            'request.requestFor'
+        ])
+        ->whereHas('request', function($query) {
+            $query->where('request_from', 'Production')
+                ->whereHas('items.item.category', function($query) {
+                    $query->where('name', 'Packages');
+                });
+        })
+        ->orderBy('id', 'desc')
+        ->get()
+        ->map(function ($stockOut) {
+            $stockOut->unmergedItems = $stockOut->request->items->map(function ($item) {
+                return [
+                    'item_id' => $item->item->id,
+                    'item_name' => $item->item->name,
+                    'capacity' => $item->item->capacity,
+                    'unit' => $item->item->unit,
+                    'category' => $item->item->category->name,
+                    'type' => $item->item->type->name,
+                    'quantity' => $item->pivot->quantity,
+                ];
+            });
+            return $stockOut;
+        });
 
-        return response()->json($packages);
+        return response()->json($stockOuts);
     }
 }
