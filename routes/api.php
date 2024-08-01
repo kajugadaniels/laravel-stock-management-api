@@ -29,11 +29,11 @@ Route::apiResource('stock-ins', StockInController::class);
 Route::apiResource('requests', RequestController::class);
 Route::get('finished-items', [RequestController::class, 'getFinishedItems']);
 Route::get('raw-material-items', [RequestController::class, 'getRawMaterialItems']);
+Route::get('package-items', [RequestController::class, 'getPackageItems']);
 Route::apiResource('stock-outs', StockOutController::class);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
 Route::apiResource('finished-products', FinishedProductController::class);
 Route::apiResource('package-requests', PackageRequestController::class);
-Route::get('package-items', [PackageRequestController::class, 'getPackageItems']);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
 
 // Registration routes
