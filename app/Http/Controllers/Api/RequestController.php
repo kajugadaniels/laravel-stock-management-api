@@ -17,7 +17,16 @@ class RequestController extends Controller
     {
         try {
             $requests = RequestModel::with([
-                'items.item',
+                'items' => function ($query) {
+                    $query->with([
+                        'item.type',
+                        'item.category',
+                        'item' => function ($itemQuery) {
+                            $itemQuery->select('id', 'name', 'capacity', 'unit');
+                        },
+                        'supplier'
+                    ]);
+                },
                 'contactPerson',
                 'requestFor'
             ])
