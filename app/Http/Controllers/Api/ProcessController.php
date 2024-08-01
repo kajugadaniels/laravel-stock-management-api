@@ -11,6 +11,12 @@ class ProcessController extends Controller
     public function getDetailedStockOuts()
     {
         $stockOuts = StockOut::with([
+            'request.items' => function($query) {
+                $query->whereHas('item.category', function($query) {
+                    $query->where('name', 'Raw Materials')
+                            ->where('name', '!=', 'Packages');
+                });
+            },
             'request.items.item',
             'request.items.item.category',
             'request.items.item.type',
@@ -18,7 +24,11 @@ class ProcessController extends Controller
             'request.requestFor'
         ])
         ->whereHas('request', function($query) {
-            $query->where('request_from', 'Production');
+            $query->where('request_from', 'Production')
+                    ->whereHas('items.item.category', function($query) {
+                        $query->where('name', 'Raw Materials')
+                            ->where('name', '!=', 'Packages');
+                });
         })
         ->orderBy('id', 'desc')
         ->get();
