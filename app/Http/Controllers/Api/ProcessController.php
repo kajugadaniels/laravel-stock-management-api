@@ -101,7 +101,7 @@ class ProcessController extends Controller
         ->orderBy('id', 'desc')
         ->get()
         ->map(function ($stockOut) {
-            $stockOut->unmergedItems = $stockOut->request->items->map(function ($item) {
+            $unmergedItems = $stockOut->request->items->map(function ($item) {
                 return [
                     'item_id' => $item->item->id,
                     'item_name' => $item->item->name,
@@ -112,6 +112,22 @@ class ProcessController extends Controller
                     'quantity' => $item->pivot->quantity,
                 ];
             });
+
+            $mergedItems = $unmergedItems->groupBy(function ($item) {
+                return $item['item_name'] . '-' . $item['capacity'];
+            })->map(function ($groupedItems) {
+                return [
+                    'item_id' => $groupedItems->first()['item_id'],
+                    'item_name' => $groupedItems->first()['item_name'],
+                    'capacity' => $groupedItems->first()['capacity'],
+                    'unit' => $groupedItems->first()['unit'],
+                    'category' => $groupedItems->first()['category'],
+                    'type' => $groupedItems->first()['type'],
+                    'quantity' => $groupedItems->sum('quantity'),
+                ];
+            })->values();
+
+            $stockOut->unmergedItems = $mergedItems;
             return $stockOut;
         });
 
