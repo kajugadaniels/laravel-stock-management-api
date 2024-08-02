@@ -14,7 +14,7 @@ class CreateProductionStockInTable extends Migration
     public function up()
     {
         Schema::create('production_stock_ins', function (Blueprint $table) {
-            $table->id();  // This is the Stock IN ID
+            $table->id();  
             $table->string('finished_product');
             $table->string('package_type');
             $table->integer('quantity');

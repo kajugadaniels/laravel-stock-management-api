@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ProductStockInController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RequestController;
 use App\Http\Controllers\Api\StockOutController;
+use App\Http\Controllers\Api\ProductionStockInController;
 
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('types', TypeController::class);
@@ -37,6 +38,7 @@ Route::get('unmerged-package-stock-outs', [ProcessController::class, 'getUnmerge
 Route::apiResource('finished-products', FinishedProductController::class);
 Route::apiResource('package-requests', PackageRequestController::class);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
+Route::apiResource('production-stock-in', ProductionStockInController::class);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
