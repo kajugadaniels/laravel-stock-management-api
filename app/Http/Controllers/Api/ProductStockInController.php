@@ -12,9 +12,8 @@ class ProductStockInController extends Controller
     public function index()
     {
         $productStockIns = ProductStockIn::with([
-            'finishedProduct.stockOut.request.item.item',
-            'finishedProduct.stockOut.request.item.item.category',
-            'finishedProduct.stockOut.request.item.item.type',
+            'finishedProduct.stockOut.request.items.item.category',
+            'finishedProduct.stockOut.request.items.item.type',
             'finishedProduct.stockOut.request.requestFor'
         ])->orderBy('id', 'desc')->get();
 
