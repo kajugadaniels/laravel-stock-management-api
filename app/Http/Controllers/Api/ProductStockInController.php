@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductStockInController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $productStockIns = ProductStockIn::with([
@@ -24,9 +21,6 @@ class ProductStockInController extends Controller
         return response()->json($productStockIns);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -48,9 +42,6 @@ class ProductStockInController extends Controller
         return response()->json(['message' => 'Product Stock In created successfully', 'data' => $productStockIn], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $productStockIn = ProductStockIn::with([
@@ -67,9 +58,6 @@ class ProductStockInController extends Controller
         return response()->json($productStockIn);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -97,9 +85,6 @@ class ProductStockInController extends Controller
         return response()->json(['message' => 'Product Stock In updated successfully', 'data' => $productStockIn], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $productStockIn = ProductStockIn::find($id);
