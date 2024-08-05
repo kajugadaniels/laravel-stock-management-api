@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RequestController;
 use App\Http\Controllers\Api\StockOutController;
 use App\Http\Controllers\Api\ProductionStockInController;
+use App\Http\Controllers\Api\ProductStockOutController;
 
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('types', TypeController::class);
@@ -39,6 +40,7 @@ Route::apiResource('finished-products', FinishedProductController::class);
 Route::apiResource('package-requests', PackageRequestController::class);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
 Route::apiResource('production-stock-in', ProductionStockInController::class);
+Route::apiResource('product-stock-out', ProductStockOutController::class);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {

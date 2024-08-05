@@ -12,8 +12,10 @@ class EmployeeController extends Controller
     public function index()
     {
         $employees = Employee::orderBy('id', 'desc')->get();
+        \Log::info('Fetching employees:', ['count' => $employees->count()]);
         return response()->json($employees);
     }
+    
 
     public function store(Request $request)
     {
