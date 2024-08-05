@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\ProductStockIn;
 use Illuminate\Http\Request;
+use App\Models\ProductStockIn;
+use App\Models\FinishedProduct;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProductStockInController extends Controller
@@ -37,6 +39,13 @@ class ProductStockInController extends Controller
         }
 
         $productStockIn = ProductStockIn::create($request->all());
+
+        // Update the corresponding FinishedProduct
+        $finishedProduct = FinishedProduct::find($request->finished_product_id);
+        if ($finishedProduct) {
+            $finishedProduct->item_qty -= $request->item_qty;
+            $finishedProduct->save();
+        }
 
         return response()->json(['message' => 'Product Stock In created successfully', 'data' => $productStockIn], 201);
     }

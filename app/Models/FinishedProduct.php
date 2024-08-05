@@ -12,6 +12,7 @@ class FinishedProduct extends Model
     protected $fillable = [
         'stock_out_id',
         'item_qty',
+        'remaining_qty',
         'brand_qty',
         'dechet_qty',
         'comment',

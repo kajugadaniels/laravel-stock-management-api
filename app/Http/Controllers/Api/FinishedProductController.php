@@ -18,7 +18,8 @@ class FinishedProductController extends Controller
             'stockOut.request.items.item',
             'stockOut.request.items.item.category',
             'stockOut.request.items.item.type',
-            'stockOut.request.requestFor'
+            'stockOut.request.requestFor',
+            'productStockIns'
         ])->orderBy('id', 'desc')->get();
 
         return response()->json($finishedProducts);
@@ -59,7 +60,8 @@ class FinishedProductController extends Controller
             'stockOut.request.items.item',
             'stockOut.request.items.item.category',
             'stockOut.request.items.item.type',
-            'stockOut.request.requestFor'
+            'stockOut.request.requestFor',
+            'productStockIns'
         ])->find($id);
 
         if (is_null($finishedProduct)) {
