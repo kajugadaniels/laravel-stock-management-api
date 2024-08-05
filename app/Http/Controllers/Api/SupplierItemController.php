@@ -134,8 +134,14 @@ class SupplierItemController extends Controller
                 ->join('items', 'supplier_items.item_id', '=', 'items.id')
                 ->join('categories', 'items.category_id', '=', 'categories.id')
                 ->join('types', 'items.type_id', '=', 'types.id')
+                ->join('suppliers', 'supplier_items.supplier_id', '=', 'suppliers.id')
                 ->where('supplier_items.supplier_id', $supplier_id)
-                ->select('items.*', 'categories.name as category_name', 'types.name as type_name')
+                ->select(
+                    'items.*',
+                    'categories.name as category_name',
+                    'types.name as type_name',
+                    'suppliers.name as supplier_name'
+                )
                 ->get();
 
             if ($items->isEmpty()) {
