@@ -19,9 +19,8 @@ class StockOutController extends Controller
     public function index()
     {
         $stockOuts = StockOut::with(['request.items.item', 'request.contactPerson', 'request.requestFor'])
-            ->orderBy('request_id', 'desc')
-            ->get()
-            ->groupBy('request_id');
+            ->orderBy('id', 'desc')
+            ->get();
 
         return response()->json($stockOuts);
     }
