@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\StockInController;
 use App\Http\Controllers\Api\SupplierItemController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\FinishedProductController;
+use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\PackageRequestController;
 use App\Http\Controllers\Api\ProcessController;
 use App\Http\Controllers\Api\ProductStockInController;
@@ -41,6 +42,7 @@ Route::apiResource('package-requests', PackageRequestController::class);
 Route::apiResource('product-stock-ins', ProductStockInController::class);
 Route::apiResource('production-stock-in', ProductionStockInController::class);
 Route::apiResource('product-stock-out', ProductStockOutController::class);
+Route::get('/inventory', [InventoryController::class, 'index']);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
