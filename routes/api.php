@@ -21,8 +21,9 @@ use App\Http\Controllers\Api\ProductStockOutController;
 
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('types', TypeController::class);
-Route::apiResource('items', ItemController::class);
 Route::get('types/category/{categoryId}', [TypeController::class, 'getTypesByCategory']);
+Route::get('raw-materials-and-packages', [TypeController::class, 'getRawMaterialsAndPackagesTypes']);
+Route::apiResource('items', ItemController::class);
 Route::apiResource('suppliers', SupplierController::class);
 Route::apiResource('supplier-items', SupplierItemController::class);
 Route::get('supplier-items/supplier/{supplier_id}', [SupplierItemController::class, 'getItemsBySupplier']);

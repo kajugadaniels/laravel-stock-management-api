@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Type;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class TypeController extends Controller
 {
@@ -69,6 +71,25 @@ class TypeController extends Controller
             if ($types->isEmpty()) {
                 return response()->json(['message' => 'No types found for this category'], 404);
             }
+            return response()->json($types, 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to fetch types', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getRawMaterialsAndPackagesTypes()
+    {
+        try {
+            $categories = Category::whereIn('name', ['Raw Materials', 'Packages'])->pluck('id');
+
+            $types = Type::whereIn('category_id', $categories)
+                        ->with('category')
+                        ->get();
+
+            if ($types->isEmpty()) {
+                return response()->json(['message' => 'No types found for Raw Materials and Packages'], 404);
+            }
+
             return response()->json($types, 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to fetch types', 'error' => $e->getMessage()], 500);
