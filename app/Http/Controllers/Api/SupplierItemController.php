@@ -43,8 +43,9 @@ class SupplierItemController extends Controller
             DB::beginTransaction();
 
             $createdItems = [];
+            $existingItems = [];
+
             foreach ($request->item_ids as $item_id) {
-                // Check if the combination of supplier_id and item_id already exists
                 $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)
                     ->where('item_id', $item_id)
                     ->first();
@@ -54,13 +55,18 @@ class SupplierItemController extends Controller
                         'supplier_id' => $request->supplier_id,
                         'item_id' => $item_id,
                     ]);
-                    $createdItems[] = $supplierItem;
+                    $createdItems[] = $supplierItem->load('item'); // Load the related item
+                } else {
+                    $existingItems[] = $existingSupplierItem->load('item'); // Load the related item
                 }
             }
 
             DB::commit();
 
-            return response()->json(['message' => 'SupplierItems created successfully', 'data' => $createdItems], 201);
+            return response()->json([
+                'created_items' => $createdItems,
+                'existing_items' => $existingItems
+            ], 201);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to create supplier items', 'error' => $e->getMessage()], 500);
