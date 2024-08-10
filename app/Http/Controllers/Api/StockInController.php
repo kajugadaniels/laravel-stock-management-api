@@ -61,8 +61,9 @@ class StockInController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'item_id' => 'required|exists:items,id',
-            'quantity' => 'required|integer',
+            'items' => 'required|array',
+            'items.*.item_id' => 'required|exists:items,id',
+            'items.*.quantity' => 'required|integer',
             'plate_number' => 'required|string',
             'batch_number' => 'nullable|string',
             'comment' => 'nullable|string',
@@ -73,19 +74,23 @@ class StockInController extends Controller
 
         $batchNumber = $request->batch_number ?? 'BAT' . random_int(1000, 9999);
 
-        $stockIn = StockIn::create([
-            'supplier_id' => $request->supplier_id,
-            'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
-            'plate_number' => $request->plate_number,
-            'batch_number' => $batchNumber,
-            'comment' => $request->comment,
-            'date' => $request->date,
-            'registered_by' => $request->registered_by,
-            'loading_payment_status' => $request->loading_payment_status,
-        ]);
+        $stockIns = [];
+        foreach ($request->items as $item) {
+            $stockIn = StockIn::create([
+                'supplier_id' => $request->supplier_id,
+                'item_id' => $item['item_id'],
+                'quantity' => $item['quantity'],
+                'plate_number' => $request->plate_number,
+                'batch_number' => $batchNumber,
+                'comment' => $request->comment,
+                'date' => $request->date,
+                'registered_by' => $request->registered_by,
+                'loading_payment_status' => $request->loading_payment_status,
+            ]);
+            $stockIns[] = $stockIn;
+        }
 
-        return response()->json($stockIn, 201);
+        return response()->json($stockIns, 201);
     }
 
     public function show($id)
