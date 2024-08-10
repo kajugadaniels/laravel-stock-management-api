@@ -31,30 +31,39 @@ class SupplierItemController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'supplier_id' => 'required|exists:suppliers,id',
-            'item_id' => 'required|exists:items,id',
+            'item_ids' => 'required|array',
+            'item_ids.*' => 'exists:items,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
 
-        // Check if the combination of supplier_id and item_id already exists
-        $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)
-            ->where('item_id', $request->item_id)
-            ->first();
-        if ($existingSupplierItem) {
-            return response()->json(['message' => 'This supplier already supplies this item'], 400);
-        }
-
         try {
-            $supplierItem = SupplierItem::create([
-                'supplier_id' => $request->supplier_id,
-                'item_id' => $request->item_id,
-            ]);
+            DB::beginTransaction();
 
-            return response()->json(['message' => 'SupplierItem created successfully', 'data' => $supplierItem], 201);
+            $createdItems = [];
+            foreach ($request->item_ids as $item_id) {
+                // Check if the combination of supplier_id and item_id already exists
+                $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)
+                    ->where('item_id', $item_id)
+                    ->first();
+
+                if (!$existingSupplierItem) {
+                    $supplierItem = SupplierItem::create([
+                        'supplier_id' => $request->supplier_id,
+                        'item_id' => $item_id,
+                    ]);
+                    $createdItems[] = $supplierItem;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json(['message' => 'SupplierItems created successfully', 'data' => $createdItems], 201);
         } catch (Exception $e) {
-            return response()->json(['message' => 'Failed to create supplier item', 'error' => $e->getMessage()], 500);
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create supplier items', 'error' => $e->getMessage()], 500);
         }
     }
 
