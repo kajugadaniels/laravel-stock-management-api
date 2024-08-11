@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Request as RequestModel;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class RequestController extends Controller
 {
@@ -138,20 +139,25 @@ class RequestController extends Controller
                         'item.type',
                         'item.category',
                         'item' => function ($itemQuery) {
-                            $itemQuery->select('id', 'name', 'capacity', 'unit');
+                            $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
                         },
                         'supplier'
                     ]);
                 },
                 'contactPerson',
                 'requestFor'
-            ])->find($id);
+            ])->findOrFail($id);
 
-            if (is_null($requestModel)) {
-                return response()->json(['message' => 'Request not found'], 404);
-            }
+            // Additional data transformations if needed
+            $requestModel->items->each(function ($item) {
+                $item->item->makeHidden(['category_id', 'type_id']);
+                $item->item->setAttribute('category_name', $item->item->category->name ?? null);
+                $item->item->setAttribute('type_name', $item->item->type->name ?? null);
+            });
 
             return response()->json($requestModel);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Request not found'], 404);
         } catch (\Exception $e) {
             Log::error('Error in show method: ' . $e->getMessage());
             return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
