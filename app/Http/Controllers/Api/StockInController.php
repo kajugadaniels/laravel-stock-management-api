@@ -108,7 +108,7 @@ class StockInController extends Controller
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'item_id' => 'required|exists:items,id',
-            'quantity' => 'required|integer',
+            'init_qty' => 'required|integer',
             'plate_number' => 'required|string',
             'batch_number' => 'nullable|string',
             'comment' => 'nullable|string',
@@ -122,7 +122,7 @@ class StockInController extends Controller
         $stockIn->update([
             'supplier_id' => $request->supplier_id,
             'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
+            'init_qty' => $request->init_qty,
             'plate_number' => $request->plate_number,
             'batch_number' => $batchNumber,
             'comment' => $request->comment,
