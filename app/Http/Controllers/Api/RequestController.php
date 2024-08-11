@@ -13,25 +13,57 @@ use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $requests = RequestModel::with([
+            $query = RequestModel::with([
                 'items' => function ($query) {
                     $query->with([
                         'item.type',
                         'item.category',
                         'item' => function ($itemQuery) {
-                            $itemQuery->select('id', 'name', 'capacity', 'unit');
+                            $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
                         },
                         'supplier'
                     ]);
                 },
                 'contactPerson',
                 'requestFor'
-            ])
-            ->orderBy('id', 'desc')
-            ->get();
+            ]);
+
+            // Handle category filter
+            if ($request->filled('category')) {
+                $query->whereHas('items.item', function ($q) use ($request) {
+                    $q->where('category_id', $request->category);
+                });
+            }
+
+            // Handle type filter
+            if ($request->filled('type')) {
+                $query->whereHas('items.item', function ($q) use ($request) {
+                    $q->where('type_id', $request->type);
+                });
+            }
+
+            // Handle date filters
+            if ($request->filled('startDate')) {
+                $query->where('created_at', '>=', $request->startDate);
+            }
+            if ($request->filled('endDate')) {
+                $query->where('created_at', '<=', $request->endDate);
+            }
+
+            // Handle status filter
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            // Handle requester filter
+            if ($request->filled('requester')) {
+                $query->where('requester_name', 'like', '%' . $request->requester . '%');
+            }
+
+            $requests = $query->orderBy('id', 'desc')->get();
 
             return response()->json($requests);
         } catch (\Exception $e) {
