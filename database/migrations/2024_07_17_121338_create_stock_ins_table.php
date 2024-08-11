@@ -15,9 +15,10 @@ return new class extends Migration
     {
         Schema::create('stock_ins', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->constrained()->onDelete('cascade'); 
-            $table->foreignId('item_id')->constrained()->onDelete('cascade'); 
+            $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
+            $table->foreignId('item_id')->constrained()->onDelete('cascade');
             $table->integer('quantity');
+            $table->integer('init_qty');
             $table->string('plate_number');
             $table->string('batch_number')->nullable();
             $table->text('comment')->nullable();
