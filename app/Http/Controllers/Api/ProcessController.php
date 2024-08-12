@@ -35,7 +35,21 @@ class ProcessController extends Controller
         ->orderBy('id', 'desc')
         ->get();
 
-        return response()->json($stockOuts);
+        // Group stock-outs by request_id
+        $groupedStockOuts = $stockOuts->groupBy('request_id')->map(function ($group) {
+            $firstItem = $group->first();
+            return [
+                'id' => $firstItem->id,
+                'request_id' => $firstItem->request_id,
+                'request' => $firstItem->request,
+                'status' => $firstItem->status,
+                'date' => $firstItem->date,
+                'total_quantity' => $group->sum('quantity'),
+                'items' => $group->pluck('request.items')->flatten()->unique('id')->values(),
+            ];
+        })->values();
+
+        return response()->json($groupedStockOuts);
     }
 
     public function getDetailedPackageStockOuts()
