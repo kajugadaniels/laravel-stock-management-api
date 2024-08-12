@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\StockOut;
 use App\Models\PackageStock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 class PackageStockController extends Controller
@@ -26,8 +28,23 @@ class PackageStockController extends Controller
             'quantity' => 'required|integer',
         ]);
 
-        $packageStock = PackageStock::create($validatedData);
-        return response()->json($packageStock, 201);
+        DB::beginTransaction();
+
+        try {
+            // Create the new PackageStock
+            $packageStock = PackageStock::create($validatedData);
+
+            // Update the related StockOut status to 'Finished'
+            $stockOut = StockOut::findOrFail($validatedData['stock_out_id']);
+            $stockOut->update(['status' => 'Finished']);
+
+            DB::commit();
+
+            return response()->json($packageStock, 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create package stock and update stock out status', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function show(PackageStock $packageStock)
