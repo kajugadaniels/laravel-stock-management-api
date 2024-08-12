@@ -11,6 +11,11 @@ class PackageStock extends Model
 
     protected $fillable = [
         'stock_out_id',
+        'item_name',
+        'category',
+        'type',
+        'capacity',
+        'unit',
         'quantity',
     ];
 

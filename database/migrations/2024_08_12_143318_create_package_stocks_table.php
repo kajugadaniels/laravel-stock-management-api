@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('package_stocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('stock_out_id')->constrained('stock_outs');
+            $table->foreignId('stock_out_id')->constrained('stock_outs')->onDelete('cascade');
+            $table->string('item_name');
+            $table->string('category');
+            $table->string('type');
+            $table->decimal('capacity', 10, 2)->nullable();
+            $table->string('unit')->nullable();
             $table->integer('quantity');
             $table->timestamps();
         });
