@@ -6,6 +6,7 @@ use App\Models\StockOut;
 use App\Models\PackageStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class PackageStockController extends Controller
@@ -36,14 +37,32 @@ class PackageStockController extends Controller
 
             // Update the related StockOut status to 'Finished'
             $stockOut = StockOut::findOrFail($validatedData['stock_out_id']);
-            $stockOut->update(['status' => 'Finished']);
+            $stockOut->status = 'Finished';
+            $stockOut->save();
 
             DB::commit();
 
-            return response()->json($packageStock, 201);
+            Log::info('PackageStock created and StockOut status updated', [
+                'package_stock_id' => $packageStock->id,
+                'stock_out_id' => $stockOut->id,
+                'new_status' => $stockOut->status
+            ]);
+
+            return response()->json([
+                'message' => 'Package stock created and stock out status updated successfully',
+                'package_stock' => $packageStock,
+                'stock_out' => $stockOut
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to create package stock and update stock out status', 'error' => $e->getMessage()], 500);
+            Log::error('Failed to create package stock and update stock out status', [
+                'error' => $e->getMessage(),
+                'stock_out_id' => $validatedData['stock_out_id']
+            ]);
+            return response()->json([
+                'message' => 'Failed to create package stock and update stock out status',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
