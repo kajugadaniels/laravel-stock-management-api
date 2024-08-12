@@ -12,16 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('package_stocks', function (Blueprint $table) {
-            Schema::create('package_stocks', function (Blueprint $table) {
-                $table->id();
-                $table->string('item_name');
-                $table->string('category');
-                $table->string('type');
-                $table->string('capacity');
-                $table->string('unit');
-                $table->integer('quantity');
-                $table->timestamps();
-            });
+            $table->id();
+            $table->foreignId('stock_out_id')->constrained('stock_outs');
+            $table->integer('quantity');
+            $table->timestamps();
         });
     }
 

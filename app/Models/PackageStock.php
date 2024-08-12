@@ -10,11 +10,12 @@ class PackageStock extends Model
     use HasFactory;
 
     protected $fillable = [
-        'item_name',
-        'category',
-        'type',
-        'capacity',
-        'unit',
+        'stock_out_id',
         'quantity',
     ];
+
+    public function stockOut()
+    {
+        return $this->belongsTo(StockOut::class, 'stock_out_id');
+    }
 }
