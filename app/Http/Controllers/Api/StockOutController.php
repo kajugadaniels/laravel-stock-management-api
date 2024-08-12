@@ -92,7 +92,8 @@ class StockOutController extends Controller
     DB::beginTransaction();
 
     try {
-        $totalRawMaterialQuantity = 0;
+        $rawMaterialStockOuts = [];
+        $packageStockOuts = [];
 
         // Create a new stock out record for each item
         foreach ($request->items as $item) {
@@ -100,28 +101,30 @@ class StockOutController extends Controller
             $category = $stockIn->item->category;
 
             if ($category->name === 'Raw Materials') {
-                $totalRawMaterialQuantity += $item['quantity'];
-            } else {
-                $stockOut = StockOut::create([
+                $rawMaterialStockOuts[] = [
                     'request_id' => $request->request_id,
                     'quantity' => $item['quantity'],
                     'date' => $request->date,
                     'status' => $request->status,
-                ]);
-
-                // Update the quantity in the stock_in table
-                $stockIn->update(['quantity' => $stockIn->quantity - $item['quantity']]);
+                ];
+                $stockIn->decrement('quantity', $item['quantity']);
+            } else {
+                $packageStockOuts[] = [
+                    'request_id' => $request->request_id,
+                    'quantity' => $item['quantity'],
+                    'date' => $request->date,
+                    'status' => $request->status,
+                ];
+                $stockIn->decrement('quantity', $item['quantity']);
             }
         }
 
-        // Create a single stock out record for raw materials
-        if ($totalRawMaterialQuantity > 0) {
-            $stockOut = StockOut::create([
-                'request_id' => $request->request_id,
-                'quantity' => $totalRawMaterialQuantity,
-                'date' => $request->date,
-                'status' => $request->status,
-            ]);
+        // Create stock out records in batches
+        if (!empty($rawMaterialStockOuts)) {
+            StockOut::insert($rawMaterialStockOuts);
+        }
+        if (!empty($packageStockOuts)) {
+            StockOut::insert($packageStockOuts);
         }
 
         // Update request status to "Approved"
