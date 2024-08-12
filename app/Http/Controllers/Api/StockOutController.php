@@ -16,45 +16,11 @@ class StockOutController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = StockOut::with([
-            'request.items' => function ($query) {
-                $query->with([
-                    'item' => function ($itemQuery) {
-                        $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
-                    },
-                    'item.category',
-                    'item.type',
-                    'supplier'
-                ]);
-            },
-            'request.contactPerson',
-            'request.requestFor'
-        ])
-        ->orderBy('id', 'desc');
-
-        // Handle date filters
-        if ($request->filled('startDate')) {
-            $query->whereDate('date', '>=', $request->startDate);
-        }
-        if ($request->filled('endDate')) {
-            $query->whereDate('date', '<=', $request->endDate);
-        }
-
-        // Handle status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Handle requester filter
-        if ($request->filled('requester')) {
-            $query->whereHas('request', function ($q) use ($request) {
-                $q->where('requester_name', 'like', '%' . $request->requester . '%');
-            });
-        }
-
-        $stockOuts = $query->get();
+        $stockOuts = StockOut::with(['request.items.item', 'request.contactPerson', 'request.requestFor'])
+            ->orderBy('id', 'desc')
+            ->get();
 
         return response()->json($stockOuts);
     }
@@ -81,39 +47,29 @@ class StockOutController extends Controller
 
         $requestModel = RequestModel::find($request->request_id);
 
+        // Check availability for each item
+        foreach ($request->items as $item) {
+            $stockIn = StockIn::find($item['item_id']);
+            if (!$stockIn || $stockIn->quantity < $item['quantity']) {
+                return response()->json(['message' => 'Insufficient quantity in stock for item ID ' . $item['item_id']], 400);
+            }
+        }
+
         DB::beginTransaction();
 
         try {
-            $totalRawMaterialQuantity = 0;
-
             // Create a new stock out record for each item
             foreach ($request->items as $item) {
-                $stockIn = StockIn::find($item['item_id']);
-                $category = $stockIn->item->category;
-
-                if ($category->name === 'Raw Materials') {
-                    $totalRawMaterialQuantity += $item['quantity'];
-                } else {
-                    StockOut::create([
-                        'request_id' => $request->request_id,
-                        'quantity' => $item['quantity'],
-                        'date' => $request->date,
-                        'status' => $request->status,
-                    ]);
-
-                    // Reduce the quantity in stock_in table
-                    $stockIn->decrement('quantity', $item['quantity']);
-                }
-            }
-
-            // Create a single stock out record for raw materials
-            if ($totalRawMaterialQuantity > 0) {
                 StockOut::create([
                     'request_id' => $request->request_id,
-                    'quantity' => $totalRawMaterialQuantity,
+                    'quantity' => $item['quantity'],
                     'date' => $request->date,
                     'status' => $request->status,
                 ]);
+
+                // Reduce the quantity in stock_in table
+                $stockIn = StockIn::find($item['item_id']);
+                $stockIn->decrement('quantity', $item['quantity']);
             }
 
             // Update request status to "Approved"

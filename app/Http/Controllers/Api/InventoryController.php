@@ -2,47 +2,66 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Item;
+use App\Models\StockIn;
+use App\Models\RequestItem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class InventoryController extends Controller
 {
-    public function index()
-    {
-        $inventory = DB::table('items')
-            ->leftJoin('categories', 'items.category_id', '=', 'categories.id')
-            ->leftJoin('types', 'items.type_id', '=', 'types.id')
-            ->leftJoin('stock_ins', 'items.id', '=', 'stock_ins.item_id')
-            ->leftJoin('requests', 'items.id', '=', 'requests.request_for_id')
-            ->leftJoin('stock_outs', 'requests.id', '=', 'stock_outs.request_id')
-            ->select(
-                'items.id',
-                'items.name',
-                'categories.name as category',
-                'types.name as type',
-                DB::raw('COALESCE(SUM(stock_ins.quantity), 0) as stock_in'),
-                DB::raw('COALESCE(SUM(stock_outs.quantity), 0) as stock_out')
-            )
-            ->groupBy('items.id', 'items.name', 'categories.name', 'types.name')
-            ->get()
-            ->map(function ($item) {
-                $remaining = $item->stock_in - $item->stock_out;
-                $percentage = $item->stock_in > 0 ? ($item->stock_out / $item->stock_in) * 100 : 0;
+    public function index(Request $request)
+{
+    try {
+        $stockIns = StockIn::with(['item', 'item.category', 'item.type'])
+            ->selectRaw('item_id, SUM(quantity) as total_stock_in')
+            ->groupBy('item_id')
+            ->when($request->filled('category'), function ($query) use ($request) {
+                $query->whereHas('item.category', function ($q) use ($request) {
+                    $q->where('id', $request->category);
+                });
+            })
+            ->when($request->filled('type'), function ($query) use ($request) {
+                $query->whereHas('item.type', function ($q) use ($request) {
+                    $q->where('id', $request->type);
+                });
+            })
+            ->when($request->filled('name'), function ($query) use ($request) {
+                $query->whereHas('item', function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->name . '%');
+                });
+            })
+            ->orderBy('total_stock_in', 'desc')
+            ->simplePaginate($request->input('itemsPerPage', 10));
 
-                return [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'category' => $item->category,
-                    'type' => $item->type,
-                    'stockIn' => $item->stock_in,
-                    'stockOut' => $item->stock_out,
-                    'remaining' => $remaining,
-                    'percentage' => round($percentage, 2)
-                ];
-            });
+        $inventory = $stockIns->map(function ($stockIn) {
+            $totalStockOut = $this->getTotalStockOut($stockIn->item_id);
+            return [
+                'id' => $stockIn->item_id,
+                'name' => $stockIn->item->name,
+                'category_name' => $stockIn->item->category->name,
+                'type_name' => $stockIn->item->type->name,
+                'capacity' => $stockIn->item->capacity,
+                'unit' => $stockIn->item->unit,
+                'total_stock_in' => $stockIn->total_stock_in,
+                'total_stock_out' => $totalStockOut,
+            ];
+        });
 
         return response()->json($inventory);
+    } catch (\Exception $e) {
+        Log::error('Error in InventoryController@index', ['error' => $e->getMessage()]);
+        return response()->json(['message' => 'Internal Server Error'], 500);
     }
+}
+
+private function getTotalStockOut($itemId)
+{
+    $totalStockOut = RequestItem::whereHas('stockIn', function ($query) use ($itemId) {
+        $query->where('item_id', $itemId);
+    })->sum('quantity');
+
+    return $totalStockOut;
+}
 }
