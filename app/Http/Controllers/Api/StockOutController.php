@@ -16,11 +16,45 @@ class StockOutController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stockOuts = StockOut::with(['request.items.item', 'request.contactPerson', 'request.requestFor'])
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = StockOut::with([
+            'request.items' => function ($query) {
+                $query->with([
+                    'item' => function ($itemQuery) {
+                        $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
+                    },
+                    'item.category',
+                    'item.type',
+                    'supplier'
+                ]);
+            },
+            'request.contactPerson',
+            'request.requestFor'
+        ])
+        ->orderBy('id', 'desc');
+
+        // Handle date filters
+        if ($request->filled('startDate')) {
+            $query->whereDate('date', '>=', $request->startDate);
+        }
+        if ($request->filled('endDate')) {
+            $query->whereDate('date', '<=', $request->endDate);
+        }
+
+        // Handle status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Handle requester filter
+        if ($request->filled('requester')) {
+            $query->whereHas('request', function ($q) use ($request) {
+                $q->where('requester_name', 'like', '%' . $request->requester . '%');
+            });
+        }
+
+        $stockOuts = $query->get();
 
         return response()->json($stockOuts);
     }
