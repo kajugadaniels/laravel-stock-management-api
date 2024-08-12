@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\FinishedProductController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\PackageRequestController;
+use App\Http\Controllers\Api\PackageStockController;
 use App\Http\Controllers\Api\ProcessController;
 use App\Http\Controllers\Api\ProductStockInController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,7 @@ Route::apiResource('product-stock-ins', ProductStockInController::class);
 Route::apiResource('production-stock-in', ProductionStockInController::class);
 Route::apiResource('product-stock-out', ProductStockOutController::class);
 Route::get('/inventory', [InventoryController::class, 'index']);
+Route::apiResource('package-stocks', PackageStockController::class);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
