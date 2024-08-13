@@ -32,8 +32,26 @@ class PackageStockController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create the new PackageStock
-            $packageStock = PackageStock::create($validatedData);
+            // Check if an item with the same attributes already exists
+            $existingPackageStock = PackageStock::where([
+                'item_name' => $validatedData['item_name'],
+                'category' => $validatedData['category'],
+                'type' => $validatedData['type'],
+                'capacity' => $validatedData['capacity'],
+                'unit' => $validatedData['unit'],
+            ])->first();
+
+            if ($existingPackageStock) {
+                // Update the quantity of the existing item
+                $existingPackageStock->quantity += $validatedData['quantity'];
+                $existingPackageStock->save();
+                $packageStock = $existingPackageStock;
+                $action = 'updated';
+            } else {
+                // Create a new PackageStock
+                $packageStock = PackageStock::create($validatedData);
+                $action = 'created';
+            }
 
             // Update the related StockOut status to 'Finished'
             $stockOut = StockOut::findOrFail($validatedData['stock_out_id']);
@@ -42,25 +60,26 @@ class PackageStockController extends Controller
 
             DB::commit();
 
-            Log::info('PackageStock created and StockOut status updated', [
+            Log::info("PackageStock {$action} and StockOut status updated", [
                 'package_stock_id' => $packageStock->id,
                 'stock_out_id' => $stockOut->id,
-                'new_status' => $stockOut->status
+                'new_status' => $stockOut->status,
+                'action' => $action
             ]);
 
             return response()->json([
-                'message' => 'Package stock created and stock out status updated successfully',
+                'message' => "Package stock {$action} and stock out status updated successfully",
                 'package_stock' => $packageStock,
                 'stock_out' => $stockOut
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to create package stock and update stock out status', [
+            Log::error('Failed to process package stock and update stock out status', [
                 'error' => $e->getMessage(),
                 'stock_out_id' => $validatedData['stock_out_id']
             ]);
             return response()->json([
-                'message' => 'Failed to create package stock and update stock out status',
+                'message' => 'Failed to process package stock and update stock out status',
                 'error' => $e->getMessage()
             ], 500);
         }
