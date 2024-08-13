@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\TypeController;
@@ -47,6 +48,7 @@ Route::apiResource('product-stock-out', ProductStockOutController::class);
 Route::get('/inventory', [InventoryController::class, 'index']);
 Route::get('production-inventory', [InventoryController::class, 'productionInventory']);
 Route::apiResource('package-stocks', PackageStockController::class);
+Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // Registration routes
 Route::controller(RegisterController::class)->group(function() {
