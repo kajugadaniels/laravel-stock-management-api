@@ -45,6 +45,7 @@ Route::apiResource('product-stock-ins', ProductStockInController::class);
 Route::apiResource('production-stock-in', ProductionStockInController::class);
 Route::apiResource('product-stock-out', ProductStockOutController::class);
 Route::get('/inventory', [InventoryController::class, 'index']);
+Route::get('production-inventory', [InventoryController::class, 'productionInventory']);
 Route::apiResource('package-stocks', PackageStockController::class);
 
 // Registration routes

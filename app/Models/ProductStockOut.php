@@ -9,7 +9,7 @@ class ProductStockOut extends Model
 {
     use HasFactory;
 
-    protected $table = 'production_stock_out';  // This is correct, specifying the table name since it doesn't follow Laravel's naming convention
+    protected $table = 'production_stock_out';
 
     protected $fillable = [
         'prod_stock_in_id',
@@ -20,9 +20,9 @@ class ProductStockOut extends Model
         'loading_payment_status',
         'quantity',
         'comment',
-        'batch',            
-        'client_name',      
-        'item_name'         
+        'batch',
+        'client_name',
+        'item_name'
     ];
 
     public function productStockIn()
