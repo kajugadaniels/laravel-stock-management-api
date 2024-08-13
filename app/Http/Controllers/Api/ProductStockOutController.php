@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\ProductStockOut;
-use App\Models\ProductStockIn;
 use Illuminate\Http\Request;
+use App\Models\ProductStockIn;
+use App\Models\ProductStockOut;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;  
 
 class ProductStockOutController extends Controller
 {
@@ -41,23 +42,38 @@ class ProductStockOutController extends Controller
             DB::beginTransaction();
 
             $productStockIn = ProductStockIn::findOrFail($request->prod_stock_in_id);
+
             if ($productStockIn->quantity < $request->quantity) {
+                DB::rollBack();
                 return response()->json(['message' => 'Insufficient stock quantity'], 400);
             }
 
             $productStockOut = new ProductStockOut($request->all());
             $productStockOut->save();
 
+            $oldQuantity = $productStockIn->quantity;
             $productStockIn->decrement('quantity', $request->quantity);
 
             DB::commit();
+
+            Log::info('Product Stock Out created and Stock In quantity updated', [
+                'product_stock_out_id' => $productStockOut->id,
+                'product_stock_in_id' => $productStockIn->id,
+                'old_quantity' => $oldQuantity,
+                'new_quantity' => $productStockIn->quantity,
+                'quantity_decremented' => $request->quantity
+            ]);
+
             return response()->json(['message' => 'Product Stock Out created successfully', 'data' => $productStockOut], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Failed to create Product Stock Out', [
+                'error' => $e->getMessage(),
+                'prod_stock_in_id' => $request->prod_stock_in_id,
+                'quantity' => $request->quantity
+            ]);
             return response()->json(['message' => 'Failed to create Product Stock Out', 'error' => $e->getMessage()], 500);
         }
     }
-
-   
 }
