@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\StockIn;
 use App\Models\StockOut;
+use App\Models\PackageStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Request as RequestModel;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class StockOutController extends Controller
@@ -77,83 +78,78 @@ class StockOutController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    Log::info('Store method called', $request->all());
+    {
+        Log::info('StockOut store method called', ['request' => $request->all()]);
 
-    $validator = Validator::make($request->all(), [
-        'request_id' => 'required|integer|exists:requests,id',
-        'items' => 'required|array|min:1',
-        'items.*.item_id' => 'required|integer|exists:stock_ins,id',
-        'items.*.quantity' => 'required|integer|min:1',
-        'date' => 'required|date',
-        'status' => 'required|string',
-    ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'request_id' => 'required|integer|exists:requests,id',
+                'items' => 'required|array|min:1',
+                'items.*.item_id' => 'required|integer|exists:stock_ins,id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'date' => 'required|date',
+                'status' => 'required|string',
+            ]);
 
-    if ($validator->fails()) {
-        return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
-    }
+            if ($validator->fails()) {
+                Log::error('Validation failed', ['errors' => $validator->errors()]);
+                return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
+            }
 
-    $requestModel = RequestModel::find($request->request_id);
+            DB::beginTransaction();
 
-    // Check availability for each item
-    foreach ($request->items as $item) {
-        $stockIn = StockIn::find($item['item_id']);
-        if (!$stockIn || $stockIn->quantity < $item['quantity']) {
-            return response()->json(['message' => 'Insufficient quantity in stock for item ID ' . $item['item_id']], 400);
-        }
-    }
+            $requestModel = RequestModel::findOrFail($request->request_id);
 
-    DB::beginTransaction();
+            foreach ($request->items as $item) {
+                $stockIn = StockIn::findOrFail($item['item_id']);
+                $category = $stockIn->item->category;
 
-    try {
-        $rawMaterialStockOuts = [];
-        $packageStockOuts = [];
-
-        // Create a new stock out record for each item
-        foreach ($request->items as $item) {
-            $stockIn = StockIn::find($item['item_id']);
-            $category = $stockIn->item->category;
-
-            if ($category->name === 'Raw Materials') {
-                $rawMaterialStockOuts[] = [
+                // Create StockOut entry
+                $stockOut = StockOut::create([
                     'request_id' => $request->request_id,
                     'quantity' => $item['quantity'],
                     'date' => $request->date,
-                    'status' => $request->status,
-                ];
-                $stockIn->decrement('quantity', $item['quantity']);
-            } else {
-                $packageStockOuts[] = [
-                    'request_id' => $request->request_id,
-                    'quantity' => $item['quantity'],
-                    'date' => $request->date,
-                    'status' => $request->status,
-                ];
+                    'status' => $category->name === 'Packages' ? 'Finished' : $request->status,
+                ]);
+
+                Log::info('StockOut created', ['stock_out_id' => $stockOut->id]);
+
+                // If category is Packages, create PackageStock entry
+                if ($category->name === 'Packages') {
+                    PackageStock::create([
+                        'stock_out_id' => $stockOut->id,
+                        'item_name' => $stockIn->item->name,
+                        'category' => $category->name,
+                        'type' => $stockIn->item->type->name,
+                        'capacity' => $stockIn->item->capacity,
+                        'unit' => $stockIn->item->unit,
+                        'quantity' => $item['quantity'],
+                    ]);
+
+                    Log::info('PackageStock created', ['stock_out_id' => $stockOut->id]);
+                }
+
+                // Decrement the stock
                 $stockIn->decrement('quantity', $item['quantity']);
             }
+
+            // Update request status
+            $requestModel->update(['status' => 'Approved']);
+
+            DB::commit();
+            Log::info('Stock out recorded successfully');
+
+            return response()->json(['message' => 'Stock out recorded successfully'], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to record stock out', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json(['message' => 'Failed to record stock out', 'error' => $e->getMessage()], 500);
         }
-
-        // Create stock out records in batches
-        if (!empty($rawMaterialStockOuts)) {
-            StockOut::insert($rawMaterialStockOuts);
-        }
-        if (!empty($packageStockOuts)) {
-            StockOut::insert($packageStockOuts);
-        }
-
-        // Update request status to "Approved"
-        $requestModel->update(['status' => 'Approved']);
-
-        DB::commit();
-
-        return response()->json(['message' => 'Stock out recorded successfully'], 201);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Failed to record stock out', ['error' => $e->getMessage()]);
-
-        return response()->json(['message' => 'Failed to record stock out', 'error' => $e->getMessage()], 500);
     }
-}
 
     /**
      * Display the specified resource.
