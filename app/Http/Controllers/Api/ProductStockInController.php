@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\PackageStock;
 use Illuminate\Http\Request;
 use App\Models\ProductStockIn;
 use App\Models\FinishedProduct;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 class ProductStockInController extends Controller
@@ -38,16 +40,53 @@ class ProductStockInController extends Controller
             return response()->json(['message' => 'Validation Error', 'errors' => $validator->errors()], 400);
         }
 
-        $productStockIn = ProductStockIn::create($request->all());
+        DB::beginTransaction();
 
-        // Update the corresponding FinishedProduct
-        $finishedProduct = FinishedProduct::find($request->finished_product_id);
-        if ($finishedProduct) {
+        try {
+            $productStockIn = ProductStockIn::create($request->all());
+
+            // Update the corresponding FinishedProduct
+            $finishedProduct = FinishedProduct::findOrFail($request->finished_product_id);
             $finishedProduct->item_qty -= $request->item_qty;
-            $finishedProduct->save();
-        }
 
-        return response()->json(['message' => 'Product Stock In created successfully', 'data' => $productStockIn], 201);
+            if ($finishedProduct->item_qty < 0) {
+                throw new \Exception('Not enough quantity in Finished Product');
+            }
+
+            $finishedProduct->save();
+
+            // Update the corresponding PackageStock
+            $packageDetails = explode(' - ', $request->package_type);
+            if (count($packageDetails) < 3) {
+                throw new \Exception('Invalid package type format');
+            }
+
+            $itemName = $packageDetails[0];
+            $capacity = floatval($packageDetails[2]);
+
+            $packageStock = PackageStock::where('item_name', $itemName)
+                                        ->where('capacity', $capacity)
+                                        ->first();
+
+            if (!$packageStock) {
+                throw new \Exception('Package stock not found');
+            }
+
+            $packageStock->quantity -= $request->quantity;
+
+            if ($packageStock->quantity < 0) {
+                throw new \Exception('Not enough quantity in Package Stock');
+            }
+
+            $packageStock->save();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Product Stock In created successfully', 'data' => $productStockIn], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error creating Product Stock In', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function show($id)
