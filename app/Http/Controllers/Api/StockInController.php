@@ -15,6 +15,11 @@ class StockInController extends Controller
         try {
             $query = StockIn::with(['supplier', 'item.category', 'item.type', 'employee']);
 
+            // Handle supplier filter
+            if (!empty($request->supplier_id)) {
+                $query->where('supplier_id', $request->supplier_id);
+            }
+
             // Handle category filter
             if (!empty($request->category)) {
                 $query->whereHas('item', function ($q) use ($request) {
