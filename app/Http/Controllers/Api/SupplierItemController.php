@@ -137,46 +137,45 @@ class SupplierItemController extends Controller
     public function destroy($id)
     {
         try {
-            $supplierItem = SupplierItem::where('id', $id)
-                            ->where('delete_status', false)
-                            ->first();
-
-            if (!$supplierItem) {
-                return response()->json(['message' => 'SupplierItem not found or already deleted'], 404);
-            }
-
+            $supplierItem = SupplierItem::findOrFail($id);
             $supplierItem->update(['delete_status' => true]);
 
             return response()->json(['message' => 'SupplierItem soft deleted successfully'], 200);
-        } catch (Exception $e) {
-            Log::error('Failed to soft delete supplier item: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to soft delete supplier item', 'error' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to soft delete supplier item'], 500);
         }
     }
 
     public function getItemsBySupplier($supplier_id)
     {
         try {
-            $items = DB::table('supplier_items')
-                ->join('items', 'supplier_items.item_id', '=', 'items.id')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->join('types', 'items.type_id', '=', 'types.id')
-                ->join('suppliers', 'supplier_items.supplier_id', '=', 'suppliers.id')
-                ->where('supplier_items.supplier_id', $supplier_id)
-                ->select(
-                    'items.*',
-                    'categories.name as category_name',
-                    'types.name as type_name',
-                    'suppliers.name as supplier_name'
-                )
-                ->get();
+            $items = SupplierItem::where('supplier_id', $supplier_id)
+                ->where('delete_status', false)
+                ->with(['item.category', 'item.type', 'supplier'])
+                ->get()
+                ->map(function ($supplierItem) {
+                    $item = $supplierItem->item;
+                    return [
+                        'id' => $supplierItem->id, // Use the SupplierItem id
+                        'item_id' => $item->id,
+                        'name' => $item->name,
+                        'category_id' => $item->category_id,
+                        'type_id' => $item->type_id,
+                        'capacity' => $item->capacity,
+                        'unit' => $item->unit,
+                        'category_name' => $item->category->name,
+                        'type_name' => $item->type->name,
+                        'supplier_name' => $supplierItem->supplier->name,
+                    ];
+                });
 
             if ($items->isEmpty()) {
-                return response()->json(['message' => 'No items found for this supplier'], 404);
+                return response()->json(['message' => 'No active items found for this supplier'], 404);
             }
 
             return response()->json(['data' => $items], 200);
         } catch (Exception $e) {
+            Log::error('Failed to retrieve items: ' . $e->getMessage());
             return response()->json(['message' => 'Failed to retrieve items', 'error' => $e->getMessage()], 500);
         }
     }

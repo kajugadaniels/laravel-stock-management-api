@@ -11,10 +11,6 @@ class SupplierItem extends Model
 
     protected $fillable = ['supplier_id', 'item_id', 'delete_status'];
 
-    protected $casts = [
-        'delete_status' => 'boolean',
-    ];
-
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
