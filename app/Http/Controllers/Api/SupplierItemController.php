@@ -14,12 +14,20 @@ class SupplierItemController extends Controller
     public function index()
     {
         try {
-            $supplierItems = DB::table('supplier_items')
-                ->select('supplier_items.*', 'suppliers.name as supplier_name', 'items.name as item_name')
-                ->join('suppliers', 'supplier_items.supplier_id', '=', 'suppliers.id')
-                ->join('items', 'supplier_items.item_id', '=', 'items.id')
-                ->orderBy('supplier_items.id', 'desc')
-                ->get();
+            $supplierItems = SupplierItem::where('delete_status', false)
+                ->with(['supplier:id,name', 'item:id,name'])
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($supplierItem) {
+                    return [
+                        'id' => $supplierItem->id,
+                        'supplier_id' => $supplierItem->supplier_id,
+                        'item_id' => $supplierItem->item_id,
+                        'supplier_name' => $supplierItem->supplier->name,
+                        'item_name' => $supplierItem->item->name,
+                        // Add any other fields you need
+                    ];
+                });
 
             return response()->json($supplierItems);
         } catch (Exception $e) {
@@ -134,11 +142,11 @@ class SupplierItemController extends Controller
                 return response()->json(['message' => 'SupplierItem not found'], 404);
             }
 
-            $supplierItem->delete();
+            $supplierItem->update(['delete_status' => true]);
 
-            return response()->json(['message' => 'SupplierItem deleted successfully'], 200);
+            return response()->json(['message' => 'SupplierItem soft deleted successfully'], 200);
         } catch (Exception $e) {
-            return response()->json(['message' => 'Failed to delete supplier item', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Failed to soft delete supplier item', 'error' => $e->getMessage()], 500);
         }
     }
 
