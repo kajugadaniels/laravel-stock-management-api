@@ -156,7 +156,7 @@ class SupplierItemController extends Controller
                 ->map(function ($supplierItem) {
                     $item = $supplierItem->item;
                     return [
-                        'id' => $supplierItem->id, // Use the SupplierItem id
+                        'id' => $supplierItem->id,
                         'item_id' => $item->id,
                         'name' => $item->name,
                         'category_id' => $item->category_id,
