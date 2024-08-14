@@ -9,7 +9,11 @@ class SupplierItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['supplier_id', 'item_id'];
+    protected $fillable = ['supplier_id', 'item_id', 'delete_status'];
+
+    protected $casts = [
+        'delete_status' => 'boolean',
+    ];
 
     public function supplier()
     {
