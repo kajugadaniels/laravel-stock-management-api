@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Exception;
 use App\Models\SupplierItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Exception;
 
 class SupplierItemController extends Controller
 {
@@ -136,16 +137,19 @@ class SupplierItemController extends Controller
     public function destroy($id)
     {
         try {
-            $supplierItem = SupplierItem::find($id);
+            $supplierItem = SupplierItem::where('id', $id)
+                            ->where('delete_status', false)
+                            ->first();
 
-            if (is_null($supplierItem)) {
-                return response()->json(['message' => 'SupplierItem not found'], 404);
+            if (!$supplierItem) {
+                return response()->json(['message' => 'SupplierItem not found or already deleted'], 404);
             }
 
             $supplierItem->update(['delete_status' => true]);
 
             return response()->json(['message' => 'SupplierItem soft deleted successfully'], 200);
         } catch (Exception $e) {
+            Log::error('Failed to soft delete supplier item: ' . $e->getMessage());
             return response()->json(['message' => 'Failed to soft delete supplier item', 'error' => $e->getMessage()], 500);
         }
     }
