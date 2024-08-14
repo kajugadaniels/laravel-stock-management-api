@@ -17,7 +17,7 @@ class InventoryController extends Controller
     {
         try {
             $stockIns = StockIn::with(['item', 'item.category', 'item.type'])
-                ->selectRaw('item_id, SUM(quantity) as total_stock_in')
+                ->selectRaw('item_id, SUM(init_qty) as total_stock_in')
                 ->groupBy('item_id')
                 ->when($request->filled('category'), function ($query) use ($request) {
                     $query->whereHas('item.category', function ($q) use ($request) {
@@ -48,6 +48,7 @@ class InventoryController extends Controller
                     'unit' => $stockIn->item->unit,
                     'total_stock_in' => $stockIn->total_stock_in,
                     'total_stock_out' => $totalStockOut,
+                    'available_quantity' => max(0, $stockIn->total_stock_in - $totalStockOut),
                 ];
             });
 
@@ -60,11 +61,13 @@ class InventoryController extends Controller
 
     private function getTotalStockOut($itemId)
     {
-        $totalStockOut = RequestItem::whereHas('stockIn', function ($query) use ($itemId) {
+        return RequestItem::whereHas('stockIn', function ($query) use ($itemId) {
             $query->where('item_id', $itemId);
-        })->sum('quantity');
-
-        return $totalStockOut;
+        })
+        ->whereHas('request.stockOut', function ($query) {
+            $query->where('status', 'Finished');
+        })
+        ->sum('quantity');
     }
 
     public function productionInventory(Request $request)
