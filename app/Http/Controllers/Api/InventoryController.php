@@ -64,9 +64,9 @@ class InventoryController extends Controller
         return RequestItem::whereHas('stockIn', function ($query) use ($itemId) {
             $query->where('item_id', $itemId);
         })
-        ->whereHas('request.stockOut', function ($query) {
-            $query->where('status', 'Finished');
-        })
+        // ->whereHas('request.stockOut', function ($query) {
+        //     $query->where('status', 'Finished');
+        // })
         ->sum('quantity');
     }
 
