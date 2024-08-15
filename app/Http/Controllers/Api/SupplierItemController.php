@@ -59,14 +59,22 @@ class SupplierItemController extends Controller
                     ->where('item_id', $item_id)
                     ->first();
 
-                if (!$existingSupplierItem) {
-                    $supplierItem = SupplierItem::create([
-                        'supplier_id' => $request->supplier_id,
-                        'item_id' => $item_id,
-                    ]);
-                    $createdItems[] = $supplierItem->load('item'); // Load the related item
+                if (!$existingSupplierItem || $existingSupplierItem->delete_status) {
+                    if ($existingSupplierItem) {
+                        // If item exists but is soft-deleted, update it
+                        $existingSupplierItem->update(['delete_status' => false]);
+                        $createdItems[] = $existingSupplierItem->fresh()->load('item');
+                    } else {
+                        // If item doesn't exist, create new
+                        $supplierItem = SupplierItem::create([
+                            'supplier_id' => $request->supplier_id,
+                            'item_id' => $item_id,
+                            'delete_status' => false,
+                        ]);
+                        $createdItems[] = $supplierItem->load('item');
+                    }
                 } else {
-                    $existingItems[] = $existingSupplierItem->load('item'); // Load the related item
+                    $existingItems[] = $existingSupplierItem->load('item');
                 }
             }
 
@@ -76,7 +84,7 @@ class SupplierItemController extends Controller
                 'created_items' => $createdItems,
                 'existing_items' => $existingItems
             ], 201);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to create supplier items', 'error' => $e->getMessage()], 500);
         }
@@ -115,11 +123,12 @@ class SupplierItemController extends Controller
                 return response()->json(['message' => 'SupplierItem not found'], 404);
             }
 
-            // Check if the combination of supplier_id and item_id already exists
+            // Check if the combination of supplier_id and item_id already exists and is not soft-deleted
             if ($request->has('supplier_id') && $request->has('item_id')) {
                 $existingSupplierItem = SupplierItem::where('supplier_id', $request->supplier_id)
                     ->where('item_id', $request->item_id)
                     ->where('id', '!=', $id)
+                    ->where('delete_status', false)
                     ->first();
                 if ($existingSupplierItem) {
                     return response()->json(['message' => 'This supplier already supplies this item'], 400);
@@ -129,7 +138,7 @@ class SupplierItemController extends Controller
             $supplierItem->update($request->all());
 
             return response()->json(['message' => 'SupplierItem updated successfully', 'data' => $supplierItem], 200);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to update supplier item', 'error' => $e->getMessage()], 500);
         }
     }
