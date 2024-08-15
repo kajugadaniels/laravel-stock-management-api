@@ -158,25 +158,21 @@ class SupplierItemController extends Controller
     public function getItemsBySupplier($supplier_id)
     {
         try {
-            $items = SupplierItem::where('supplier_id', $supplier_id)
-                ->where('delete_status', false)
-                ->with(['item.category', 'item.type', 'supplier'])
-                ->get()
-                ->map(function ($supplierItem) {
-                    $item = $supplierItem->item;
-                    return [
-                        'id' => $supplierItem->id,
-                        'item_id' => $item->id,
-                        'name' => $item->name,
-                        'category_id' => $item->category_id,
-                        'type_id' => $item->type_id,
-                        'capacity' => $item->capacity,
-                        'unit' => $item->unit,
-                        'category_name' => $item->category->name,
-                        'type_name' => $item->type->name,
-                        'supplier_name' => $supplierItem->supplier->name,
-                    ];
-                });
+            $items = DB::table('supplier_items')
+                ->join('items', 'supplier_items.item_id', '=', 'items.id')
+                ->join('categories', 'items.category_id', '=', 'categories.id')
+                ->join('types', 'items.type_id', '=', 'types.id')
+                ->join('suppliers', 'supplier_items.supplier_id', '=', 'suppliers.id')
+                ->where('supplier_items.supplier_id', $supplier_id)
+                ->where('supplier_items.delete_status', false)
+                ->select(
+                    'supplier_items.id as supplier_item_id',
+                    'items.*',
+                    'categories.name as category_name',
+                    'types.name as type_name',
+                    'suppliers.name as supplier_name'
+                )
+                ->get();
 
             if ($items->isEmpty()) {
                 return response()->json(['message' => 'No active items found for this supplier'], 404);
@@ -184,7 +180,7 @@ class SupplierItemController extends Controller
 
             return response()->json(['data' => $items], 200);
         } catch (Exception $e) {
-            Log::error('Failed to retrieve items: ' . $e->getMessage());
+            Log::error('Failed to retrieve items for supplier: ' . $e->getMessage());
             return response()->json(['message' => 'Failed to retrieve items', 'error' => $e->getMessage()], 500);
         }
     }
