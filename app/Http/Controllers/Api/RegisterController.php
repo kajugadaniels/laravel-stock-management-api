@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\API\BaseController as BaseController;
 
 class RegisterController extends BaseController
@@ -14,51 +16,94 @@ class RegisterController extends BaseController
     /**
      * Register api
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return JsonResponse
      */
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required',
-            'c_password' => 'required|same:password',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
-        $user = User::create($input);
-        $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-        $success['name'] =  $user->name;
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
-        return $this->sendResponse($success, 'User register successfully.');
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->sendResponse([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
+        ], 'User registered successfully.');
     }
 
     /**
      * Login api
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return JsonResponse
      */
     public function login(Request $request): JsonResponse
     {
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-            $user = Auth::user();
-            $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-            $success['name'] =  $user->name;
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
 
-            return $this->sendResponse($success, 'User login successfully.');
-        }
-        else{
-            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return $this->sendResponse([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user
+            ], 'User logged in successfully.');
+
+        } catch (ValidationException $e) {
+            return $this->sendError('Validation Error.', $e->errors());
         }
     }
 
-    public function checkAuth()
+    /**
+     * Logout api
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function logout(Request $request): JsonResponse
     {
-        return response()->json(['message' => 'Authenticated'], 200);
+        try {
+            $request->user()->currentAccessToken()->delete();
+            return $this->sendResponse([], 'User logged out successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('Logout Error.', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Check authentication status
+     *
+     * @return JsonResponse
+     */
+    public function checkAuth(): JsonResponse
+    {
+        return $this->sendResponse(['user' => Auth::user()], 'Authenticated');
     }
 }

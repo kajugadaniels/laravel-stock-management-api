@@ -51,9 +51,9 @@ Route::apiResource('package-stocks', PackageStockController::class);
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // Registration routes
-Route::controller(RegisterController::class)->group(function() {
-    Route::post('register', 'register');
-    Route::post('login', 'login');
+Route::post('register', [RegisterController::class, 'register']);
+Route::post('login', [RegisterController::class, 'login']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('logout', [RegisterController::class, 'logout']);
+    Route::get('check-auth', [RegisterController::class, 'checkAuth']);
 });
-
-Route::middleware('auth:sanctum')->get('/check-auth', [RegisterController::class, 'checkAuth']);
