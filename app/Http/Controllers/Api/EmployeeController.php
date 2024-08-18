@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
@@ -12,10 +13,10 @@ class EmployeeController extends Controller
     public function index()
     {
         $employees = Employee::orderBy('id', 'desc')->get();
-        \Log::info('Fetching employees:', ['count' => $employees->count()]);
+        Log::info('Fetching employees:', ['count' => $employees->count()]);
         return response()->json($employees);
     }
-    
+
 
     public function store(Request $request)
     {
