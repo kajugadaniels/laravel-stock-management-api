@@ -108,4 +108,9 @@ class RegisterController extends BaseController
     {
         return $this->sendResponse(['user' => Auth::user()], 'Authenticated');
     }
+
+    public function getUsers(): JsonResponse
+    {
+        return response()->json(User::orderBy('id', 'desc')->get(), 200);
+    }
 }
