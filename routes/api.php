@@ -54,6 +54,8 @@ Route::get('/dashboard', [DashboardController::class, 'index']);
 Route::get('users', [RegisterController::class, 'getUsers']);
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
+Route::put('/users/{id}', [RegisterController::class, 'updateUser']);
+Route::delete('/users/{id}', [RegisterController::class, 'deleteUser']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [RegisterController::class, 'logout']);
     Route::get('check-auth', [RegisterController::class, 'checkAuth']);

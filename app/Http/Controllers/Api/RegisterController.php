@@ -113,4 +113,46 @@ class RegisterController extends BaseController
     {
         return response()->json(User::orderBy('id', 'desc')->get(), 200);
     }
+
+    public function updateUser(Request $request, $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return $this->sendError('User not found.', [], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
+            'role' => 'sometimes|required|string|max:30',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user->update($request->only(['name', 'email', 'role']));
+
+        return $this->sendResponse(['user' => $user], 'User updated successfully.');
+    }
+
+    /**
+     * Delete a user
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function deleteUser($id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return $this->sendError('User not found.', [], 404);
+        }
+
+        $user->delete();
+
+        return $this->sendResponse([], 'User deleted successfully.');
+    }
 }
