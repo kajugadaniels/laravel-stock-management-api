@@ -165,6 +165,7 @@ class RegisterController extends BaseController
     {
         try {
             $validator = Validator::make($request->all(), [
+                'user_id' => 'required|exists:users,id',
                 'current_password' => 'required|string',
                 'new_password' => 'required|string|min:8|confirmed',
             ]);
@@ -173,7 +174,7 @@ class RegisterController extends BaseController
                 return $this->sendError('Validation Error.', $validator->errors());
             }
 
-            $user = Auth::user();
+            $user = User::find($request->user_id);
 
             if (!$user) {
                 Log::error('Change password attempt for non-existent user');
@@ -187,6 +188,7 @@ class RegisterController extends BaseController
             $user->password = Hash::make($request->new_password);
             $user->save();
 
+            Log::info('Password changed successfully for user:', ['user_id' => $user->id]);
             return $this->sendResponse([], 'Password changed successfully.');
         } catch (\Exception $e) {
             Log::error('Error in changePassword: ' . $e->getMessage());

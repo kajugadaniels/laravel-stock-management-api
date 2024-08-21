@@ -51,13 +51,13 @@ Route::apiResource('package-stocks', PackageStockController::class);
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // Registration routes
-Route::get('users', [RegisterController::class, 'getUsers']);
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
+Route::get('users', [RegisterController::class, 'getUsers']);
+Route::put('/users/{id}', [RegisterController::class, 'updateUser']);
+Route::delete('/users/{id}', [RegisterController::class, 'deleteUser']);
+Route::post('change-password', [RegisterController::class, 'changePassword']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [RegisterController::class, 'logout']);
     Route::get('check-auth', [RegisterController::class, 'checkAuth']);
-    Route::put('/users/{id}', [RegisterController::class, 'updateUser']);
-    Route::delete('/users/{id}', [RegisterController::class, 'deleteUser']);
-    Route::post('change-password', [RegisterController::class, 'changePassword']);
 });
