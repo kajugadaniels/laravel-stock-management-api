@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -29,23 +30,27 @@ class RegisterController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 422);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+            ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        return $this->sendResponse([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
-        ], 'User registered successfully.');
+            return $this->sendResponse([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user
+            ], 'User registered successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('Registration Error.', ['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -154,5 +159,38 @@ class RegisterController extends BaseController
         $user->delete();
 
         return $this->sendResponse([], 'User deleted successfully.');
+    }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8|confirmed',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->sendError('Validation Error.', $validator->errors());
+            }
+
+            $user = Auth::user();
+
+            if (!$user) {
+                Log::error('Change password attempt for non-existent user');
+                return $this->sendError('User not found.', [], 404);
+            }
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return $this->sendError('Current password is incorrect.', [], 400);
+            }
+
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return $this->sendResponse([], 'Password changed successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error in changePassword: ' . $e->getMessage());
+            return $this->sendError('An unexpected error occurred.', ['error' => $e->getMessage()], 500);
+        }
     }
 }
