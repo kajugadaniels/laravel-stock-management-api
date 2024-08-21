@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\TypeController;
-use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StockInController;
 use App\Http\Controllers\Api\SupplierItemController;
 use App\Http\Controllers\Api\EmployeeController;
@@ -51,9 +51,9 @@ Route::apiResource('package-stocks', PackageStockController::class);
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // Registration routes
-Route::post('register', [RegisterController::class, 'register']);
-Route::post('login', [RegisterController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('logout', [RegisterController::class, 'logout']);
-    Route::get('check-auth', [RegisterController::class, 'checkAuth']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::put('user', [AuthController::class, 'updateUser']);
 });
