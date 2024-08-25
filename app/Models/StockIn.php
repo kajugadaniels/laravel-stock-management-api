@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockIn extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'supplier_id',
         'item_id',
@@ -22,8 +23,6 @@ class StockIn extends Model
         'loading_payment_status'
     ];
 
-
-    // Define the relationship to requests
     public function requests()
     {
         return $this->hasMany(Request::class, 'item_id');
@@ -39,8 +38,8 @@ class StockIn extends Model
         return $this->belongsTo(Item::class);
     }
 
-    public function employee()
+    public function registeredBy()
     {
-        return $this->belongsTo(Employee::class, 'registered_by');
+        return $this->belongsTo(User::class, 'registered_by');
     }
 }

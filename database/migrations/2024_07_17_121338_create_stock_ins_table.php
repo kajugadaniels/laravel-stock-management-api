@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('batch_number')->nullable();
             $table->text('comment')->nullable();
             $table->date('date');
-            $table->foreignId('registered_by')->constrained('employees')->onDelete('cascade');
+            $table->foreignId('registered_by')->constrained('users')->onDelete('cascade');
             $table->boolean('loading_payment_status')->default(false);
             $table->timestamps();
         });
