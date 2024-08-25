@@ -18,21 +18,21 @@ class UserSeederTable extends Seeder
             'name' => 'Managing Director',
             'email' => 'md@jabana.com',
             'password' => Hash::make('123'),
-            'role' => 'manager',
+            'role' => 'Manager',
         ]);
 
         User::create([
             'name' => 'Store Keeper',
             'email' => 'storekeeper@jabana.com',
             'password' => Hash::make('123'),
-            'role' => 'storekeeper',
+            'role' => 'Storekeeper',
         ]);
 
         User::create([
             'name' => 'Production',
             'email' => 'production@jabana.com',
             'password' => Hash::make('123'),
-            'role' => 'production',
+            'role' => 'Production',
         ]);
     }
 }
