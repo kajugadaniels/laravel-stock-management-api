@@ -19,6 +19,10 @@ class StockOutController extends Controller
      */
     public function index(Request $request)
     {
+        // Log the request parameters
+        Log::info('Index method called', ['request' => $request->all()]);
+
+        // Build the query to retrieve StockOut records with related data
         $query = StockOut::with([
             'request.items' => function ($query) {
                 $query->with([
@@ -29,49 +33,70 @@ class StockOutController extends Controller
                     'item.type',
                     'supplier'
                 ]);
-            },
-            'request.contactPerson',
-            'request.requestFor'
-        ])
-        ->orderBy('id', 'desc');
+            }
+        ]);
 
-        // Handle date filters
+        // Apply filters based on request parameters
         if ($request->filled('startDate')) {
             $query->whereDate('date', '>=', $request->startDate);
         }
         if ($request->filled('endDate')) {
             $query->whereDate('date', '<=', $request->endDate);
         }
-
-        // Handle status filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
-        // Handle requester filter
         if ($request->filled('requester')) {
             $query->whereHas('request', function ($q) use ($request) {
                 $q->where('requester_name', 'like', '%' . $request->requester . '%');
             });
         }
 
+        // Retrieve all matching StockOut records
         $stockOuts = $query->get();
 
-        // Group stock-outs by request_id
-        $groupedStockOuts = $stockOuts->groupBy('request_id')->map(function ($group) {
-            $firstItem = $group->first();
-            return [
-                'id' => $firstItem->id,
-                'request_id' => $firstItem->request_id,
-                'request' => $firstItem->request,
-                'status' => $firstItem->status,
-                'date' => $firstItem->date,
-                'total_quantity' => $group->sum('quantity'),
-                'items' => $group->pluck('request.items')->flatten()->unique('id')->values(),
-            ];
+        // Check if any records were found
+        if ($stockOuts->isEmpty()) {
+            return response()->json(['message' => 'No stock out records found'], 404);
+        }
+
+        // Group and merge StockOut records by request_id
+        $mergedStockOuts = $this->mergeStockOutsByRequestId($stockOuts);
+
+        // Return the merged data as JSON
+        return response()->json($mergedStockOuts);
+    }
+
+    private function mergeStockOutsByRequestId($stockOuts)
+    {
+        $grouped = $stockOuts->groupBy(function ($item) {
+            return $item->request_id;
+        });
+
+        $merged = $grouped->map(function ($items, $requestId) {
+            $firstItem = $items->first();
+            $mergedItem = $firstItem->replicate();
+            $mergedItem->request->items = $items->flatMap(function ($item) {
+                return $item->request->items;
+            })->groupBy(function ($item) {
+                return $item->item_id;
+            })->map(function ($items) {
+                $first = $items->first();
+                $totalQuantity = $items->sum(function ($item) {
+                    return $item->pivot->quantity;
+                });
+                return (object) [
+                    'item' => $first->item,
+                    'pivot' => (object) ['quantity' => $totalQuantity],
+                    'supplier' => $first->supplier
+                ];
+            })->values();
+
+            $mergedItem->quantity = $items->sum('quantity');
+            return $mergedItem;
         })->values();
 
-        return response()->json($groupedStockOuts);
+        return $merged;
     }
 
     /**
