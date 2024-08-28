@@ -87,6 +87,7 @@ class StockOutController extends Controller
                 'items' => 'required|array|min:1',
                 'items.*.item_id' => 'required|integer|exists:stock_ins,id',
                 'items.*.quantity' => 'required|integer|min:1',
+                'items.*.package_qty' => 'required|integer',
                 'date' => 'required|date',
                 'status' => 'required|string',
             ]);
@@ -108,6 +109,7 @@ class StockOutController extends Controller
                 $stockOut = StockOut::create([
                     'request_id' => $request->request_id,
                     'quantity' => $item['quantity'],
+                    'package_qty' => $item['package_qty'],
                     'date' => $request->date,
                     'status' => $category->name === 'Packages' ? 'Finished' : $request->status,
                 ]);
