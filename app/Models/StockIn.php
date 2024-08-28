@@ -15,6 +15,7 @@ class StockIn extends Model
         'item_id',
         'quantity',
         'init_qty',
+        'package_qty',
         'plate_number',
         'batch_number',
         'comment',

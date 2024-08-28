@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
             $table->integer('quantity');
             $table->integer('init_qty');
+            $table->integer('package_qty')->nullable();
             $table->string('plate_number');
             $table->string('batch_number')->nullable();
             $table->text('comment')->nullable();
