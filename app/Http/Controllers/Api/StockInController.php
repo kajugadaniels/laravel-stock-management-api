@@ -130,7 +130,7 @@ class StockInController extends Controller
             'supplier_id' => $request->supplier_id,
             'item_id' => $request->item_id,
             'init_qty' => $request->init_qty,
-            'package_qty' => $request->init_qty,
+            'package_qty' => $request->package_qty,
             'plate_number' => $request->plate_number,
             'batch_number' => $batchNumber,
             'comment' => $request->comment,
