@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\StockIn;
+use App\Models\Category;
 use App\Models\RequestItem;
 use Illuminate\Http\Request;
 use App\Models\ProductStockIn;
@@ -108,5 +109,87 @@ class InventoryController extends Controller
                 $query->where('package_type', $packageType);
             })
             ->sum('quantity');
+    }
+
+    public function rawMaterials()
+    {
+        try {
+            DB::enableQueryLog();
+
+            $rawMaterialsCategory = Category::where('name', 'Raw Materials')->first();
+
+            if (!$rawMaterialsCategory) {
+                Log::warning('Raw Materials category not found');
+                return response()->json(['message' => 'Raw Materials category not found'], 404);
+            }
+
+            $stockIn = StockIn::whereHas('item.category', function ($query) use ($rawMaterialsCategory) {
+                $query->where('id', $rawMaterialsCategory->id);
+            })->sum('init_qty');
+
+            $stockOut = RequestItem::whereHas('stockIn.item.category', function ($query) use ($rawMaterialsCategory) {
+                $query->where('id', $rawMaterialsCategory->id);
+            })->sum('quantity');
+
+            Log::info('Raw Materials Inventory', [
+                'category_id' => $rawMaterialsCategory->id,
+                'stockIn' => $stockIn,
+                'stockOut' => $stockOut,
+                'queries' => DB::getQueryLog(),
+            ]);
+
+            return response()->json([
+                'stockIn' => $stockIn,
+                'stockOut' => $stockOut,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in InventoryController@rawMaterials', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'queries' => DB::getQueryLog(),
+            ]);
+            return response()->json(['message' => 'Internal Server Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function packages()
+    {
+        try {
+            DB::enableQueryLog();
+
+            $packagesCategory = Category::where('name', 'Packages')->first();
+
+            if (!$packagesCategory) {
+                Log::warning('Packages category not found');
+                return response()->json(['message' => 'Packages category not found'], 404);
+            }
+
+            $stockIn = StockIn::whereHas('item.category', function ($query) use ($packagesCategory) {
+                $query->where('id', $packagesCategory->id);
+            })->sum('init_qty');
+
+            $stockOut = RequestItem::whereHas('stockIn.item.category', function ($query) use ($packagesCategory) {
+                $query->where('id', $packagesCategory->id);
+            })->sum('quantity');
+
+            Log::info('Packages Inventory', [
+                'category_id' => $packagesCategory->id,
+                'stockIn' => $stockIn,
+                'stockOut' => $stockOut,
+                'queries' => DB::getQueryLog(),
+            ]);
+
+            return response()->json([
+                'stockIn' => $stockIn,
+                'stockOut' => $stockOut,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in InventoryController@packages', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'queries' => DB::getQueryLog(),
+            ]);
+            return response()->json(['message' => 'Internal Server Error: ' . $e->getMessage()], 500);
+        }
     }
 }
