@@ -269,4 +269,22 @@ class StockOutController extends Controller
             return response()->json(['message' => 'Failed to delete stock out', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function cancel($id)
+    {
+        try {
+            $request = RequestModel::findOrFail($id);
+            $request->update(['status' => 'Cancelled']);
+
+            Log::info('Request cancelled successfully', ['request_id' => $id]);
+            return response()->json(['message' => 'Request cancelled successfully'], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to cancel request', [
+                'request_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Failed to cancel request', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -37,6 +37,7 @@ Route::get('finished-items', [RequestController::class, 'getFinishedItems']);
 Route::get('raw-material-items', [RequestController::class, 'getRawMaterialItems']);
 Route::get('package-items', [RequestController::class, 'getPackageItems']);
 Route::apiResource('stock-outs', StockOutController::class);
+Route::post('/stock-outs/cancel/{id}', [StockOutController::class, 'cancel']);
 Route::get('process/stock-outs', [ProcessController::class, 'getDetailedStockOuts']);
 Route::get('package-stock-outs', [ProcessController::class, 'getDetailedPackageStockOuts']);
 Route::get('unmerged-package-stock-outs', [ProcessController::class, 'getUnmergedPackageStockOuts']);
