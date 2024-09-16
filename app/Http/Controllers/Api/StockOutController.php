@@ -29,9 +29,9 @@ class StockOutController extends Controller
                     'item' => function ($itemQuery) {
                         $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
                     },
-                    'item.category',
-                    'item.type',
-                    'supplier'
+                    'item.category:id,name',
+                    'item.type:id,name',
+                    'supplier:id,name'
                 ]);
             }
         ])
@@ -56,12 +56,29 @@ class StockOutController extends Controller
             }
         }
 
-        // Attach quantities to request items
+        // Attach quantities and item details to request items
         $stockOuts->transform(function ($stockOutGroup) use ($quantitiesByRequestItem) {
             return $stockOutGroup->map(function ($stockOut) use ($quantitiesByRequestItem) {
                 $itemId = $stockOut->request_item_id;
                 $requestId = $stockOut->request_id;
                 $stockOut->approved_quantity = $quantitiesByRequestItem[$requestId][$itemId] ?? 0;
+
+                // Attach item details
+                $item = $stockOut->request->items->firstWhere('id', $itemId)->item;
+                if ($item) {
+                    $stockOut->item_name = $item->name;
+                    $stockOut->item_category = $item->category->name;
+                    $stockOut->item_type = $item->type->name;
+                    $stockOut->item_capacity = $item->capacity;
+                    $stockOut->item_unit = $item->unit;
+                } else {
+                    $stockOut->item_name = 'N/A';
+                    $stockOut->item_category = 'N/A';
+                    $stockOut->item_type = 'N/A';
+                    $stockOut->item_capacity = 'N/A';
+                    $stockOut->item_unit = 'N/A';
+                }
+
                 return $stockOut;
             });
         });
