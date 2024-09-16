@@ -35,7 +35,7 @@ class StockOutController extends Controller
                 ]);
             }
         ])
-        ->select('request_id', 'request_item_id', 'quantity')
+        ->select('request_id', 'request_item_id', 'quantity','package_qty', 'created_at')
         ->get()
         ->groupBy('request_id');
 
