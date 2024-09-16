@@ -149,11 +149,11 @@ class RequestController extends Controller
                 'requestFor'
             ])->findOrFail($id);
 
-            // Fetch approved quantities from StockOut table
+            // Fetch approved quantities from StockOut table for each request_item_id
             $requestModel->items->each(function ($item) {
                 // Retrieve approved quantity for each item from the StockOut table
                 $approvedQuantity = DB::table('stock_outs')
-                    ->where('request_item_id', $item->pivot->id) // Assuming request_item_id is stored in the stock_outs table
+                    ->where('request_item_id', $item->pivot->stock_in_id) // Using stock_in_id to match request_item_id
                     ->sum('quantity');  // Sum up all approved quantities
 
                 // Add the approved quantity to the item data
@@ -174,7 +174,6 @@ class RequestController extends Controller
             return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
         }
     }
-
 
     public function update(Request $request, string $id)
     {
