@@ -23,7 +23,7 @@ class StockOutController extends Controller
         Log::info('Index method called', ['request' => $request->all()]);
 
         // Build the query to retrieve StockOut records with related data
-        $query = StockOut::with([
+        $stockOuts = StockOut::with([
             'request.items' => function ($query) {
                 $query->with([
                     'item' => function ($itemQuery) {
@@ -34,37 +34,40 @@ class StockOutController extends Controller
                     'supplier'
                 ]);
             }
-        ]);
+        ])
+        ->select('request_id', 'request_item_id', 'quantity')
+        ->get()
+        ->groupBy('request_id');
 
-        // Apply filters based on request parameters
-        if ($request->filled('startDate')) {
-            $query->whereDate('date', '>=', $request->startDate);
+        // Prepare an array to hold quantities by request_id and item_id
+        $quantitiesByRequestItem = [];
+
+        // Aggregate quantities
+        foreach ($stockOuts as $requestId => $stockOutGroup) {
+            foreach ($stockOutGroup as $stockOut) {
+                $itemId = $stockOut->request_item_id;
+                if (!isset($quantitiesByRequestItem[$requestId])) {
+                    $quantitiesByRequestItem[$requestId] = [];
+                }
+                if (!isset($quantitiesByRequestItem[$requestId][$itemId])) {
+                    $quantitiesByRequestItem[$requestId][$itemId] = 0;
+                }
+                $quantitiesByRequestItem[$requestId][$itemId] += $stockOut->quantity;
+            }
         }
-        if ($request->filled('endDate')) {
-            $query->whereDate('date', '<=', $request->endDate);
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('requester')) {
-            $query->whereHas('request', function ($q) use ($request) {
-                $q->where('requester_name', 'like', '%' . $request->requester . '%');
+
+        // Attach quantities to request items
+        $stockOuts->transform(function ($stockOutGroup) use ($quantitiesByRequestItem) {
+            return $stockOutGroup->map(function ($stockOut) use ($quantitiesByRequestItem) {
+                $itemId = $stockOut->request_item_id;
+                $requestId = $stockOut->request_id;
+                $stockOut->approved_quantity = $quantitiesByRequestItem[$requestId][$itemId] ?? 0;
+                return $stockOut;
             });
-        }
+        });
 
-        // Retrieve all matching StockOut records
-        $stockOuts = $query->get();
-
-        // Check if any records were found
-        if ($stockOuts->isEmpty()) {
-            return response()->json(['message' => 'No stock out records found'], 404);
-        }
-
-        // Group and merge StockOut records by request_id
-        $mergedStockOuts = $this->mergeStockOutsByRequestId($stockOuts);
-
-        // Return the merged data as JSON
-        return response()->json($mergedStockOuts);
+        // Return the grouped data as JSON
+        return response()->json($stockOuts);
     }
 
     private function mergeStockOutsByRequestId($stockOuts)
