@@ -130,9 +130,20 @@ class StockOutController extends Controller
                 $stockIn = StockIn::findOrFail($item['item_id']);
                 $category = $stockIn->item->category;
 
-                // Create StockOut entry
+                // Create StockOut entry, including request_item_id
+                $requestItem = DB::table('request_items') // Use the correct table name
+                    ->where('request_id', $request->request_id)
+                    ->where('stock_in_id', $item['item_id'])
+                    ->first();
+
+                if (!$requestItem) {
+                    throw new \Exception('Request item not found for the given item and request.');
+                }
+
+                // Create StockOut entry, including request_item_id
                 $stockOut = StockOut::create([
                     'request_id' => $request->request_id,
+                    'request_item_id' => $requestItem->id, // Use the retrieved request_item_id
                     'quantity' => $item['quantity'],
                     'package_qty' => $item['package_qty'],
                     'date' => $request->date,
@@ -171,10 +182,15 @@ class StockOutController extends Controller
             DB::rollBack();
             Log::error('Failed to record stock out', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()  // Include full request data for troubleshooting
             ]);
 
-            return response()->json(['message' => 'Failed to record stock out', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Failed to record stock out',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ], 500);
         }
     }
 
