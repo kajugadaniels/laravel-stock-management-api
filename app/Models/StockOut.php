@@ -11,6 +11,7 @@ class StockOut extends Model
 
     protected $fillable = [
         'request_id',
+        'request_item_id',
         'quantity',
         'package_qty',
         'date',
@@ -20,5 +21,10 @@ class StockOut extends Model
     public function request()
     {
         return $this->belongsTo(Request::class);
+    }
+
+    public function requestItem()
+    {
+        return $this->belongsTo(RequestItem::class, 'request_item_id');
     }
 }
