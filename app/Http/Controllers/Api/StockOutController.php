@@ -60,12 +60,10 @@ class StockOutController extends Controller
             return response()->json(['message' => 'No stock out records found'], 404);
         }
 
-        // Group and merge StockOut records by request_id
-        $mergedStockOuts = $this->mergeStockOutsByRequestId($stockOuts);
-
-        // Return the merged data as JSON
-        return response()->json($mergedStockOuts);
+        // Return the stock outs directly
+        return response()->json($stockOuts);
     }
+
 
     private function mergeStockOutsByRequestId($stockOuts)
     {
