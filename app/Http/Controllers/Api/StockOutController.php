@@ -26,17 +26,18 @@ class StockOutController extends Controller
         $query = StockOut::with([
             'request.items' => function ($query) {
                 $query->with([
-                    'item' => function ($itemQuery) {
+                    'stockIn.item' => function ($itemQuery) {
                         $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
                     },
-                    'item.category',
-                    'item.type',
-                    'supplier'
+                    'stockIn.item.category',
+                    'stockIn.item.type',
+                    'stockIn.supplier'
                 ]);
             }
-        ]);
+        ])
+        ->where('request_id', $request->query('request_id')); // Filter by request_id
 
-        // Apply filters based on request parameters
+        // Apply additional filters if necessary
         if ($request->filled('startDate')) {
             $query->whereDate('date', '>=', $request->startDate);
         }
@@ -45,11 +46,6 @@ class StockOutController extends Controller
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
-        }
-        if ($request->filled('requester')) {
-            $query->whereHas('request', function ($q) use ($request) {
-                $q->where('requester_name', 'like', '%' . $request->requester . '%');
-            });
         }
 
         // Retrieve all matching StockOut records
