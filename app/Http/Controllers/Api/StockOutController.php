@@ -26,18 +26,17 @@ class StockOutController extends Controller
         $query = StockOut::with([
             'request.items' => function ($query) {
                 $query->with([
-                    'stockIn.item' => function ($itemQuery) {
+                    'item' => function ($itemQuery) {
                         $itemQuery->select('id', 'name', 'capacity', 'unit', 'category_id', 'type_id');
                     },
-                    'stockIn.item.category',
-                    'stockIn.item.type',
-                    'stockIn.supplier'
+                    'item.category',
+                    'item.type',
+                    'supplier'
                 ]);
             }
-        ])
-        ->where('request_id', $request->query('request_id')); // Filter by request_id
+        ]);
 
-        // Apply additional filters if necessary
+        // Apply filters based on request parameters
         if ($request->filled('startDate')) {
             $query->whereDate('date', '>=', $request->startDate);
         }
@@ -46,6 +45,11 @@ class StockOutController extends Controller
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+        if ($request->filled('requester')) {
+            $query->whereHas('request', function ($q) use ($request) {
+                $q->where('requester_name', 'like', '%' . $request->requester . '%');
+            });
         }
 
         // Retrieve all matching StockOut records
@@ -56,10 +60,12 @@ class StockOutController extends Controller
             return response()->json(['message' => 'No stock out records found'], 404);
         }
 
-        // Return the stock outs directly
-        return response()->json($stockOuts);
-    }
+        // Group and merge StockOut records by request_id
+        $mergedStockOuts = $this->mergeStockOutsByRequestId($stockOuts);
 
+        // Return the merged data as JSON
+        return response()->json($mergedStockOuts);
+    }
 
     private function mergeStockOutsByRequestId($stockOuts)
     {
