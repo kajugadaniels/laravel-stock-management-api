@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stock_outs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('request_id')->constrained()->onDelete('cascade');
-            $table->foreign('request_item_id')->references('id')->on('request_items');
+            $table->unsignedBigInteger('request_item_id')->nullable();
             $table->integer('quantity');
             $table->integer('package_qty');
             $table->string('status')->default('pending')->nullable();
