@@ -133,6 +133,7 @@ class RequestController extends Controller
     public function show(string $id)
     {
         try {
+            // Find the request and load related items
             $requestModel = RequestModel::with([
                 'items' => function ($query) {
                     $query->with([
@@ -148,13 +149,23 @@ class RequestController extends Controller
                 'requestFor'
             ])->findOrFail($id);
 
-            // Additional data transformations if needed
+            // Fetch approved quantities from StockOut table
             $requestModel->items->each(function ($item) {
+                // Retrieve approved quantity for each item from the StockOut table
+                $approvedQuantity = DB::table('stock_outs')
+                    ->where('request_item_id', $item->pivot->id) // Assuming request_item_id is stored in the stock_outs table
+                    ->sum('quantity');  // Sum up all approved quantities
+
+                // Add the approved quantity to the item data
+                $item->setAttribute('approved_quantity', $approvedQuantity);
+
+                // Optionally, hide other attributes you don't need in the response
                 $item->item->makeHidden(['category_id', 'type_id']);
                 $item->item->setAttribute('category_name', $item->item->category->name ?? null);
                 $item->item->setAttribute('type_name', $item->item->type->name ?? null);
             });
 
+            // Return the updated request with approved quantities
             return response()->json($requestModel);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Request not found'], 404);
@@ -163,6 +174,7 @@ class RequestController extends Controller
             return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500);
         }
     }
+
 
     public function update(Request $request, string $id)
     {
